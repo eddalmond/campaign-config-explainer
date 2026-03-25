@@ -9,5 +9,6 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
+RUN echo '#!/bin/sh\nPORT=${PORT:-8080}\nsed -i "s/listen 80/listen $PORT/" /etc/nginx/conf.d/default.conf\nexec nginx -g "daemon off;"' > /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/docker-entrypoint.sh"]
