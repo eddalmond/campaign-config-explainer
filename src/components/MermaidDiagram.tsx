@@ -44,7 +44,7 @@ export default function MermaidDiagram({ code }: Props) {
 
   if (error) {
     return (
-      <div className="text-sm text-[#4c6272] whitespace-pre-wrap font-mono p-4 bg-[#f0f4f5]">
+      <div style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', whiteSpace: 'pre-wrap', fontFamily: 'monospace', padding: '1rem', backgroundColor: 'var(--grey-5)'}}>
         {code}
       </div>
     );

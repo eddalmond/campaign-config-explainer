@@ -23,49 +23,49 @@ export default function CampaignOverview({ config, onIterationSelect }: Props) {
   );
 
   return (
-    <div className="bg-white border border-[#d8dde0] p-6 mb-8">
-      <h2 className="text-xl font-bold mt-0 mb-4 border-b-3 border-[#005eb8] pb-2">Campaign Overview</h2>
+    <div className="card">
+      <h2 className="section-heading mt-0">Campaign Overview</h2>
       
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#005eb8]">
-          <div className="text-xs uppercase tracking-wide text-[#4c6272]">ID</div>
-          <div className="font-semibold mt-1">{config.ID}</div>
+      <div className="data-grid mb-6">
+        <div className="data-item data-item--blue">
+          <div className="data-item__label">ID</div>
+          <div className="data-item__value">{config.ID}</div>
         </div>
-        <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#005eb8]">
-          <div className="text-xs uppercase tracking-wide text-[#4c6272]">Name</div>
-          <div className="font-semibold mt-1">{config.Name}</div>
+        <div className="data-item data-item--blue">
+          <div className="data-item__label">Name</div>
+          <div className="data-item__value">{config.Name}</div>
         </div>
-        <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#005eb8]">
-          <div className="text-xs uppercase tracking-wide text-[#4c6272]">Type</div>
-          <div className="font-semibold mt-1">{config.Type === 'V' ? 'Vaccination (V)' : config.Type === 'S' ? 'Screening (S)' : config.Type}</div>
+        <div className="data-item data-item--blue">
+          <div className="data-item__label">Type</div>
+          <div className="data-item__value">{config.Type === 'V' ? 'Vaccination (V)' : config.Type === 'S' ? 'Screening (S)' : config.Type}</div>
         </div>
-        <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#005eb8]">
-          <div className="text-xs uppercase tracking-wide text-[#4c6272]">Target</div>
-          <div className="font-semibold mt-1">{config.Target}</div>
+        <div className="data-item data-item--blue">
+          <div className="data-item__label">Target</div>
+          <div className="data-item__value">{config.Target}</div>
         </div>
-        <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#005eb8]">
-          <div className="text-xs uppercase tracking-wide text-[#4c6272]">Start Date</div>
-          <div className="font-semibold mt-1">{fmtDate(config.StartDate)}</div>
+        <div className="data-item data-item--blue">
+          <div className="data-item__label">Start Date</div>
+          <div className="data-item__value">{fmtDate(config.StartDate)}</div>
         </div>
-        <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#005eb8]">
-          <div className="text-xs uppercase tracking-wide text-[#4c6272]">End Date</div>
-          <div className="font-semibold mt-1">{fmtDate(config.EndDate)}</div>
+        <div className="data-item data-item--blue">
+          <div className="data-item__label">End Date</div>
+          <div className="data-item__value">{fmtDate(config.EndDate)}</div>
         </div>
-        <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#005eb8]">
-          <div className="text-xs uppercase tracking-wide text-[#4c6272]">Frequency</div>
-          <div className="font-semibold mt-1">{descFreq(config.IterationFrequency)}</div>
+        <div className="data-item data-item--blue">
+          <div className="data-item__label">Frequency</div>
+          <div className="data-item__value">{descFreq(config.IterationFrequency)}</div>
         </div>
-        <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#005eb8]">
-          <div className="text-xs uppercase tracking-wide text-[#4c6272]">Iterations</div>
-          <div className="font-semibold mt-1">{config.Iterations.length}</div>
+        <div className="data-item data-item--blue">
+          <div className="data-item__label">Iterations</div>
+          <div className="data-item__value">{config.Iterations.length}</div>
         </div>
       </div>
 
-      <div className="bg-white border border-[#d8dde0] p-4">
-        <label className="block font-semibold mb-2">Select Iteration</label>
+      <div className="card form-group mb-0">
+        <label className="form-label">Select Iteration</label>
         <select
           onChange={(e) => onIterationSelect(parseInt(e.target.value))}
-          className="w-full md:w-auto min-w-[300px] p-2 border-2 border-[#212b32] bg-white"
+          className="select-input"
         >
           {sortedIterations.map((it, i) => (
             <option key={i} value={i}>

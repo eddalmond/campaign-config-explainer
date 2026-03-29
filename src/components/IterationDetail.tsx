@@ -48,96 +48,96 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
   }
 
   return (
-    <div className="bg-white border border-[#d8dde0] p-6">
+    <div className="card">
       {/* Iteration Summary */}
       <div className="mb-8">
-        <h2 className="text-xl font-bold mt-0 mb-4 border-b-3 border-[#005eb8] pb-2">
+        <h2 className="section-heading mt-0">
           Iteration: {iteration.Name || iteration.ID}
         </h2>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#005eb8]">
-            <div className="text-xs uppercase tracking-wide text-[#4c6272]">ID</div>
-            <div className="font-semibold mt-1">{iteration.ID}</div>
+        <div className="data-grid">
+          <div className="data-item data-item--blue">
+            <div className="data-item__label">ID</div>
+            <div className="data-item__value">{iteration.ID}</div>
           </div>
-          <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#005eb8]">
-            <div className="text-xs uppercase tracking-wide text-[#4c6272]">Date</div>
-            <div className="font-semibold mt-1">{fmtDate(iteration.IterationDate)}</div>
+          <div className="data-item data-item--blue">
+            <div className="data-item__label">Date</div>
+            <div className="data-item__value">{fmtDate(iteration.IterationDate)}</div>
           </div>
-          <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#005eb8]">
-            <div className="text-xs uppercase tracking-wide text-[#4c6272]">Type</div>
-            <div className="font-semibold mt-1">{descIterType(iteration.Type)}</div>
+          <div className="data-item data-item--blue">
+            <div className="data-item__label">Type</div>
+            <div className="data-item__value">{descIterType(iteration.Type)}</div>
           </div>
-          <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#005eb8]">
-            <div className="text-xs uppercase tracking-wide text-[#4c6272]">Comms Type</div>
-            <div className="font-semibold mt-1">{iteration.CommsType || '—'}</div>
+          <div className="data-item data-item--blue">
+            <div className="data-item__label">Comms Type</div>
+            <div className="data-item__value">{iteration.CommsType || '—'}</div>
           </div>
         </div>
 
         {iteration.StatusText && (
           <>
-            <h3 className="text-lg font-semibold mt-6 mb-3">Status Text</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#007f3b]">
-                <div className="text-xs uppercase tracking-wide text-[#4c6272]">Actionable</div>
-                <div className="font-semibold mt-1">{iteration.StatusText.Actionable || '—'}</div>
+            <h3 className="sub-heading">Status Text</h3>
+            <div className="data-grid data-grid--3">
+              <div className="data-item data-item--green">
+                <div className="data-item__label">Actionable</div>
+                <div className="data-item__value">{iteration.StatusText.Actionable || '—'}</div>
               </div>
-              <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#e68300]">
-                <div className="text-xs uppercase tracking-wide text-[#4c6272]">Not Actionable</div>
-                <div className="font-semibold mt-1">{iteration.StatusText.NotActionable || '—'}</div>
+              <div className="data-item data-item--orange">
+                <div className="data-item__label">Not Actionable</div>
+                <div className="data-item__value">{iteration.StatusText.NotActionable || '—'}</div>
               </div>
-              <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#d81e05]">
-                <div className="text-xs uppercase tracking-wide text-[#4c6272]">Not Eligible</div>
-                <div className="font-semibold mt-1">{iteration.StatusText.NotEligible || '—'}</div>
+              <div className="data-item data-item--red">
+                <div className="data-item__label">Not Eligible</div>
+                <div className="data-item__value">{iteration.StatusText.NotEligible || '—'}</div>
               </div>
             </div>
           </>
         )}
 
-        <h3 className="text-lg font-semibold mt-6 mb-3">Default Routing Paths</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#005eb8]">
-            <div className="text-xs uppercase tracking-wide text-[#4c6272]">Actionable (R fallback)</div>
-            <div className="font-mono mt-1">{iteration.DefaultCommsRouting || '—'}</div>
+        <h3 className="sub-heading">Default Routing Paths</h3>
+        <div className="data-grid data-grid--3">
+          <div className="data-item data-item--blue">
+            <div className="data-item__label">Actionable (R fallback)</div>
+            <div className="data-item__value font-mono">{iteration.DefaultCommsRouting || '—'}</div>
           </div>
-          <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#7C2855]">
-            <div className="text-xs uppercase tracking-wide text-[#4c6272]">Not Eligible (X fallback)</div>
-            <div className="font-mono mt-1">{iteration.DefaultNotEligibleRouting || '—'}</div>
+          <div className="data-item data-item--purple">
+            <div className="data-item__label">Not Eligible (X fallback)</div>
+            <div className="data-item__value font-mono">{iteration.DefaultNotEligibleRouting || '—'}</div>
           </div>
-          <div className="bg-[#f0f4f5] p-3 border-l-4 border-[#8a6d3b]">
-            <div className="text-xs uppercase tracking-wide text-[#4c6272]">Not Actionable (Y fallback)</div>
-            <div className="font-mono mt-1">{iteration.DefaultNotActionableRouting || '—'}</div>
+          <div className="data-item data-item--brown">
+            <div className="data-item__label">Not Actionable (Y fallback)</div>
+            <div className="data-item__value font-mono">{iteration.DefaultNotActionableRouting || '—'}</div>
           </div>
         </div>
       </div>
 
       {/* Cohort Table */}
       <div className="mb-8">
-        <h2 className="text-xl font-bold mt-0 mb-4 border-b-3 border-[#005eb8] pb-2">
+        <h2 className="section-heading">
           Cohorts ({cohorts.length})
         </h2>
-        <p className="text-sm text-[#4c6272] mb-4">
+        <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
           Evaluated in priority order. Person must be a member of a cohort to proceed to rule evaluation for that cohort.
         </p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="table-container">
+          <table className="data-table">
             <thead>
-              <tr className="bg-[#005eb8] text-white">
-                <th className="p-2 text-left font-semibold uppercase text-xs">Priority</th>
-                <th className="p-2 text-left font-semibold uppercase text-xs">Cohort Label</th>
-                <th className="p-2 text-left font-semibold uppercase text-xs">Cohort Group</th>
-                <th className="p-2 text-left font-semibold uppercase text-xs">Virtual</th>
-                <th className="p-2 text-left font-semibold uppercase text-xs">Positive Description</th>
+              <tr>
+                <th>Priority</th>
+                <th>Cohort Label</th>
+                <th>Cohort Group</th>
+                <th>Virtual</th>
+                <th>Positive Description</th>
               </tr>
             </thead>
             <tbody>
               {cohorts.map((c, i) => (
-                <tr key={i} className="border-b border-[#d8dde0] hover:bg-[#f0f4f5]">
-                  <td className="p-2">{c.Priority ?? '—'}</td>
-                  <td className="p-2 font-mono">{c.CohortLabel}</td>
-                  <td className="p-2">{c.CohortGroup}</td>
-                  <td className="p-2">{c.Virtual === 'Y' ? <strong>Yes</strong> : 'No'}</td>
-                  <td className="p-2">{c.PositiveDescription || '—'}</td>
+                <tr key={i}>
+                  <td>{c.Priority ?? '—'}</td>
+                  <td className="font-mono">{c.CohortLabel}</td>
+                  <td>{c.CohortGroup}</td>
+                  <td>{c.Virtual === 'Y' ? <strong>Yes</strong> : 'No'}</td>
+                  <td>{c.PositiveDescription || '—'}</td>
                 </tr>
               ))}
             </tbody>
@@ -147,65 +147,61 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
 
       {/* Phase 1: Eligibility Flow */}
       <div className="mb-8">
-        <span className="inline-block bg-[#005eb8] text-white px-3 py-1 text-xs font-bold uppercase tracking-wide mb-2">
+        <span className="badge badge--phase">
           Phase 1
         </span>
-        <h2 className="text-xl font-bold mt-2 mb-4">Eligibility Flow — "Who is eligible?"</h2>
-        <p className="text-sm text-[#4c6272] mb-4">
+        <h2 style={{fontSize: 'var(--font-size-xl)', fontWeight: 700, marginTop: '0.5rem', marginBottom: '1rem'}}>Eligibility Flow — "Who is eligible?"</h2>
+        <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
           For each cohort (by priority), the system checks: base eligibility (cohort membership) →
           Filter rules (F) by priority group → Suppression rules (S) by priority group.
           The best status across all cohorts becomes the final status.
         </p>
-        <div className="bg-white border border-[#d8dde0] p-4 overflow-x-auto">
+        <div className="mermaid-container">
           <MermaidDiagram code={buildEligibilityDiagram(filterRules, suppressionRules, cohorts)} />
         </div>
       </div>
 
       {/* Phase 2: Action Routing */}
       <div className="mb-8">
-        <span className="inline-block bg-[#005eb8] text-white px-3 py-1 text-xs font-bold uppercase tracking-wide mb-2">
+        <span className="badge badge--phase">
           Phase 2
         </span>
-        <h2 className="text-xl font-bold mt-2 mb-4">Action Routing — "What happens next?"</h2>
-        <p className="text-sm text-[#4c6272] mb-4">
+        <h2 style={{fontSize: 'var(--font-size-xl)', fontWeight: 700, marginTop: '0.5rem', marginBottom: '1rem'}}>Action Routing — "What happens next?"</h2>
+        <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
           Based on the final status from Phase 1, the system selects which action rules to evaluate:
-          <span className="inline-block bg-[#005eb8] text-white px-2 py-0.5 text-xs font-bold ml-2 mr-1">R</span> if <strong>actionable</strong>
-          <span className="inline-block bg-[#7C2855] text-white px-2 py-0.5 text-xs font-bold ml-2 mr-1">X</span> if <strong>not eligible</strong>
-          <span className="inline-block bg-[#8a6d3b] text-white px-2 py-0.5 text-xs font-bold ml-2 mr-1">Y</span> if <strong>not actionable</strong>
+          <span className="badge badge--r" style={{marginLeft: '0.5rem', marginRight: '0.25rem'}}>R</span> if <strong>actionable</strong>
+          <span className="badge badge--x" style={{marginLeft: '0.5rem', marginRight: '0.25rem'}}>X</span> if <strong>not eligible</strong>
+          <span className="badge badge--y" style={{marginLeft: '0.5rem', marginRight: '0.25rem'}}>Y</span> if <strong>not actionable</strong>
           <br />
           All rules in a priority group must match for that group's CommsRouting to be used. First matching group wins. Otherwise, default routing applies.
         </p>
-        <div className="bg-white border border-[#d8dde0] p-4 overflow-x-auto">
+        <div className="mermaid-container">
           <MermaidDiagram code={buildActionRoutingDiagram(redirectRules, xRules, yRules, iteration)} />
         </div>
         
         {/* Routing Resolution */}
-        <h3 className="text-lg font-semibold mt-6 mb-3">Routing Resolution</h3>
-        <p className="text-sm text-[#4c6272] mb-4">How CommsRouting strings resolve to actions via the ActionsMapper.</p>
+        <h3 className="sub-heading">Routing Resolution</h3>
+        <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>How CommsRouting strings resolve to actions via the ActionsMapper.</p>
         {buildRoutingResolution(redirectRules, xRules, yRules, iteration, actionsMapper || {})}
       </div>
 
       {/* Tabbed Rule Tables */}
       <div>
-        <h2 className="text-xl font-bold mt-0 mb-4 border-b-3 border-[#005eb8] pb-2">Rule Details</h2>
+        <h2 className="section-heading mt-0">Rule Details</h2>
         
-        <div className="flex gap-0 border-b-3 border-[#005eb8]">
+        <div className="tabs-nav">
           {tabs.map(tab => (
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-5 py-2.5 font-semibold text-sm border border-[#d8dde0] border-b-none -mb-px ${
-                activeTab === tab.id
-                  ? 'bg-white text-[#005eb8] border-[#005eb8] border-b-white mb-[-3px]'
-                  : 'bg-[#e8edee] text-[#4c6272] hover:bg-[#f0f4f5]'
-              }`}
+               key={tab.id}
+               onClick={() => setActiveTab(tab.id)}
+               className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
             >
               {tab.label}
             </button>
           ))}
         </div>
 
-        <div className="p-6 border border-[#d8dde0] border-t-0">
+        <div className="tab-content">
           {activeTab === 'eligibility' && (
             <EligibilityRulesTable filterRules={filterRules} suppressionRules={suppressionRules} />
           )}
@@ -217,27 +213,29 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
           )}
           {activeTab === 'rules-mapper' && iteration.RulesMapper && (
             <div>
-              <p className="text-sm text-[#4c6272] mb-4">Maps internal rule names to external-facing codes and text for display.</p>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-[#005eb8] text-white">
-                    <th className="p-2 text-left font-semibold uppercase text-xs">Mapper Key</th>
-                    <th className="p-2 text-left font-semibold uppercase text-xs">Rule Names</th>
-                    <th className="p-2 text-left font-semibold uppercase text-xs">Rule Code</th>
-                    <th className="p-2 text-left font-semibold uppercase text-xs">Rule Text</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(iteration.RulesMapper).map(([key, entry]) => (
-                    <tr key={key} className="border-b border-[#d8dde0] hover:bg-[#f0f4f5]">
-                      <td className="p-2 font-mono">{key}</td>
-                      <td className="p-2">{(entry.RuleNames || []).map(n => <code key={n} className="mr-1">{n}</code>)}</td>
-                      <td className="p-2">{entry.RuleCode || '—'}</td>
-                      <td className="p-2">{entry.RuleText || '—'}</td>
+              <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>Maps internal rule names to external-facing codes and text for display.</p>
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Mapper Key</th>
+                      <th>Rule Names</th>
+                      <th>Rule Code</th>
+                      <th>Rule Text</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {Object.entries(iteration.RulesMapper).map(([key, entry]) => (
+                      <tr key={key}>
+                        <td className="font-mono">{key}</td>
+                        <td>{(entry.RuleNames || []).map(n => <code key={n} className="code-inline" style={{marginRight: '4px'}}>{n}</code>)}</td>
+                        <td>{entry.RuleCode || '—'}</td>
+                        <td>{entry.RuleText || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
