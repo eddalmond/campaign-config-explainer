@@ -1,16 +1,16 @@
 :root {
-  /* NHS Identity Colors */
-  --nhs-blue: #005eb8;
-  --nhs-blue-dark: #003087;
-  --nhs-blue-light: #41b6e6;
-  
-  --nhs-red: #da291c;
-  --nhs-green: #007f3b;
-  --nhs-green-dark: #00602a;
-  --nhs-green-light: #ccffde;
-  --nhs-orange: #e87722;
-  --nhs-yellow: #ffb81c;
-  
+  /* Primary Palette */
+  --primary: #005eb8;
+  --primary-dark: #003087;
+  --primary-light: #41b6e6;
+
+  --danger: #da291c;
+  --success: #007f3b;
+  --success-dark: #00602a;
+  --success-light: #ccffde;
+  --warning: #e87722;
+  --accent: #ffb81c;
+
   /* Neutral Palette */
   --white: #ffffff;
   --grey-5: #f0f4f5;
@@ -19,7 +19,7 @@
   --grey-2: #768692;
   --grey-1: #4c6272;
   --black: #212b32;
-  
+
   /* Status Colors */
   --status-actionable: #007f3b;
   --status-actionable-bg: #e5f2e8;
@@ -27,7 +27,7 @@
   --status-not-eligible-bg: #fce1e0;
   --status-not-actionable: #e68300;
   --status-not-actionable-bg: #fff3e0;
-  
+
   --status-x: #7C2855;
   --status-x-bg: #f5e0eb;
   --status-y: #8a6d3b;
@@ -68,12 +68,12 @@ h2 { font-size: var(--font-size-xl); margin-bottom: 1rem; }
 h3 { font-size: var(--font-size-lg); margin-bottom: 0.75rem; }
 
 a {
-  color: var(--nhs-blue);
+  color: var(--primary);
   text-decoration: underline;
 }
 
 a:hover {
-  color: var(--nhs-blue-dark);
+  color: var(--primary-dark);
 }
 
 /* Layout */
@@ -91,32 +91,26 @@ a:hover {
 }
 
 /* Header */
-.nhsuk-header {
-  background-color: var(--nhs-blue);
+.app-header {
+  background-color: var(--primary);
   border-bottom: 4px solid var(--white);
   padding: 0.75rem 1rem;
 }
 
-.nhsuk-header__container {
+.app-header__container {
   display: flex;
   align-items: center;
   gap: 1.5rem;
 }
 
-.nhsuk-logo {
-  width: 80px;
-  height: 32px;
-  display: block;
-}
-
-.nhsuk-header__service-name {
+.app-header__service-name {
   color: var(--white);
   font-weight: 600;
   font-size: var(--font-size-lg);
   text-decoration: none;
 }
 
-.nhsuk-header__service-name:hover {
+.app-header__service-name:hover {
   text-decoration: underline;
 }
 
@@ -185,7 +179,7 @@ a:hover {
 }
 
 details > summary {
-  color: var(--nhs-blue);
+  color: var(--primary);
   font-weight: 600;
   cursor: pointer;
   padding: 0.5rem 0;
@@ -204,13 +198,13 @@ details > summary {
 }
 
 .btn--primary {
-  background-color: var(--nhs-green);
+  background-color: var(--success);
   color: var(--white);
-  box-shadow: 0 4px 0 var(--nhs-green-dark);
+  box-shadow: 0 4px 0 var(--success-dark);
 }
 
 .btn--primary:hover {
-  background-color: var(--nhs-green-dark);
+  background-color: var(--success-dark);
 }
 
 .btn--primary:active {
@@ -235,12 +229,12 @@ details > summary {
 }
 
 .message-error {
-  color: var(--nhs-red);
+  color: var(--danger);
   font-weight: 600;
 }
 
 .message-success {
-  color: var(--nhs-green);
+  color: var(--success);
   font-weight: 600;
 }
 
@@ -275,8 +269,8 @@ details > summary {
   border-left: 4px solid var(--grey-3);
 }
 
-.data-item--blue { border-left-color: var(--nhs-blue); }
-.data-item--green { border-left-color: var(--nhs-green); }
+.data-item--blue { border-left-color: var(--primary); }
+.data-item--green { border-left-color: var(--success); }
 .data-item--red { border-left-color: var(--status-not-eligible); }
 .data-item--orange { border-left-color: var(--status-not-actionable); }
 .data-item--purple { border-left-color: var(--status-x); }
@@ -302,7 +296,7 @@ details > summary {
 .section-heading {
   font-size: var(--font-size-xl);
   font-weight: 700;
-  border-bottom: 3px solid var(--nhs-blue);
+  border-bottom: 3px solid var(--primary);
   padding-bottom: 0.5rem;
   margin-bottom: 1rem;
 }
@@ -327,7 +321,7 @@ details > summary {
 }
 
 .data-table th {
-  background-color: var(--nhs-blue);
+  background-color: var(--primary);
   color: var(--white);
   text-align: left;
   padding: 0.5rem;
@@ -362,19 +356,19 @@ details > summary {
   background-color: var(--grey-1);
 }
 
-.badge--phase { background-color: var(--nhs-blue); margin-bottom: 0.5rem; }
-.badge--primary { background-color: var(--nhs-blue); }
-.badge--r { background-color: var(--nhs-blue); }
+.badge--phase { background-color: var(--primary); margin-bottom: 0.5rem; }
+.badge--primary { background-color: var(--primary); }
+.badge--r { background-color: var(--primary); }
 .badge--x { background-color: var(--status-x); }
 .badge--y { background-color: var(--status-y); }
 
 .bg-red { background-color: var(--status-not-eligible); }
 .bg-orange { background-color: var(--status-not-actionable); }
-.bg-blue { background-color: var(--nhs-blue); }
+.bg-blue { background-color: var(--primary); }
 
 .text-red { color: var(--status-not-eligible); }
 .text-orange { color: var(--status-not-actionable); }
-.text-blue { color: var(--nhs-blue); }
+.text-blue { color: var(--primary); }
 
 .code-inline {
   background-color: var(--grey-4);
@@ -388,7 +382,7 @@ details > summary {
 .tabs-nav {
   display: flex;
   gap: 0;
-  border-bottom: 3px solid var(--nhs-blue);
+  border-bottom: 3px solid var(--primary);
   margin-bottom: 0;
 }
 
@@ -410,8 +404,8 @@ details > summary {
 
 .tab-btn.active {
   background-color: var(--white);
-  color: var(--nhs-blue);
-  border-color: var(--nhs-blue);
+  color: var(--primary);
+  border-color: var(--primary);
   border-bottom-color: var(--white);
   margin-bottom: -3px;
 }
@@ -440,7 +434,7 @@ details > summary {
   margin-bottom: 1rem;
 }
 
-.routing-block--r { border-color: var(--nhs-blue); }
+.routing-block--r { border-color: var(--primary); }
 .routing-block--x { border-color: var(--status-x); }
 .routing-block--y { border-color: var(--status-y); }
 
@@ -452,7 +446,7 @@ details > summary {
 .routing-item {
   display: inline-block;
   background-color: var(--grey-4);
-  border-left: 2px solid var(--nhs-blue);
+  border-left: 2px solid var(--primary);
   padding: 0.25rem 0.5rem;
   font-size: var(--font-size-xs);
   margin-right: 0.5rem;
@@ -460,7 +454,7 @@ details > summary {
 }
 
 /* Footer */
-.nhsuk-footer {
+.app-footer {
   background-color: var(--grey-3);
   padding: 2rem 1rem;
   text-align: center;
