@@ -1861,3 +1861,203 @@ body,
 [data-theme="dark"] .iteration-diff__field {
   background-color: rgba(187, 128, 9, 0.1);
 }
+
+/* Fallback chain diagram (R / X / Y routing) */
+.fallback-chain {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+.fallback-chain__chain {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--grey-5);
+  border: 1px solid var(--grey-3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.fallback-chain__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--grey-3);
+  font-weight: 600;
+}
+.fallback-chain__header-label {
+  font-size: 0.9rem;
+}
+.fallback-chain__list {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.fallback-chain__item {
+  background-color: white;
+  border: 1px solid var(--grey-3);
+  border-left-width: 4px;
+  border-radius: 3px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.fallback-chain__item--empty {
+  border-left-width: 1px;
+  font-style: italic;
+  color: var(--grey-1);
+  text-align: center;
+}
+.fallback-chain__item--default {
+  background-color: #fafbfc;
+  font-style: italic;
+}
+.fallback-chain__item--campaign {
+  background-color: #f6f8fa;
+}
+.fallback-chain__item--end {
+  background-color: transparent;
+  border-style: dashed;
+  color: var(--grey-1);
+  text-align: center;
+  font-style: italic;
+}
+.fallback-chain__item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  font-weight: 600;
+  color: #1f2933;
+}
+.fallback-chain__rank {
+  display: inline-block;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Menlo', monospace;
+  font-size: 0.75rem;
+  background-color: var(--grey-4);
+  border: 1px solid var(--grey-3);
+  border-radius: 3px;
+  padding: 0 0.3rem;
+  min-width: 1.5rem;
+  text-align: center;
+  color: var(--grey-1);
+}
+.fallback-chain__priority {
+  font-size: 0.75rem;
+  color: var(--grey-1);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.fallback-chain__tried {
+  font-size: 0.7rem;
+  background-color: #ddf4ff;
+  color: #0969da;
+  border: 1px solid #b6e3ff;
+  border-radius: 3px;
+  padding: 0 0.3rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.fallback-chain__names {
+  font-size: 0.85rem;
+  color: #1f2933;
+  font-style: normal;
+}
+.fallback-chain__no-routing {
+  font-size: 0.8rem;
+  color: #cf222e;
+}
+.fallback-chain__arrow {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--grey-1);
+  font-weight: 600;
+  font-style: italic;
+  margin-top: 0.1rem;
+}
+.fallback-chain__routing {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.fallback-chain__routing-codes {
+  font-size: 0.8rem;
+  color: var(--grey-1);
+}
+.fallback-chain__code {
+  background-color: var(--grey-4);
+  border: 1px solid var(--grey-3);
+  font-weight: 600;
+}
+.fallback-chain__pipe {
+  color: var(--grey-1);
+  margin: 0 0.2rem;
+  font-weight: 700;
+}
+.fallback-chain__action-list {
+  list-style: none;
+  margin: 0.2rem 0 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  color: #1f2933;
+}
+.fallback-chain__action {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: baseline;
+}
+.fallback-chain__action-type {
+  font-weight: 600;
+  color: #005eb8;
+}
+.fallback-chain__action-ext {
+  color: var(--grey-1);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Menlo', monospace;
+  font-size: 0.75rem;
+}
+.fallback-chain__action-desc {
+  color: var(--grey-1);
+}
+.fallback-chain__action-missing {
+  color: #cf222e;
+  font-size: 0.8rem;
+}
+
+[data-theme="dark"] .fallback-chain__chain {
+  background-color: var(--grey-4);
+}
+[data-theme="dark"] .fallback-chain__item {
+  background-color: #131a21;
+}
+[data-theme="dark"] .fallback-chain__item--default {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+[data-theme="dark"] .fallback-chain__item--campaign {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+[data-theme="dark"] .fallback-chain__item-header,
+[data-theme="dark"] .fallback-chain__names,
+[data-theme="dark"] .fallback-chain__action,
+[data-theme="dark"] .fallback-chain__action-type {
+  color: #e6edf3;
+}
+[data-theme="dark"] .fallback-chain__tried {
+  background-color: rgba(56, 139, 253, 0.15);
+  color: #58a6ff;
+  border-color: rgba(56, 139, 253, 0.4);
+}
+[data-theme="dark"] .fallback-chain__code {
+  background-color: var(--grey-5);
+  border-color: var(--grey-3);
+  color: #e6edf3;
+}

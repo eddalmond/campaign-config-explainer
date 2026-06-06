@@ -8,19 +8,20 @@ import ActionsMapperTable from './ActionsMapperTable';
 import ValidationPanel from './ValidationPanel';
 import TemplateChips from './TemplateChips';
 import AuthorPanel from './AuthorPanel';
+import FallbackChainDiagram from './FallbackChainDiagram';
 import { explainIteration } from '../utils/explain';
 
 interface Props {
   iteration: Iteration;
   actionsMapper?: Record<string, ActionMapping>;
-  /** Optional campaign-level dates — used by the validation panel for
-   *  cross-iteration checks like ITERATION_DATE_OUT_OF_RANGE. */
-  campaignDates?: { StartDate?: string; EndDate?: string };
+  /** Optional campaign-level context — dates and campaign-wide default
+   *  routing. Used by the validation panel and the fallback-chain diagram. */
+  campaignContext?: { StartDate?: string; EndDate?: string; DefaultCommsRouting?: string };
 }
 
 type TabId = 'eligibility' | 'action' | 'actions-mapper' | 'rules-mapper';
 
-export default function IterationDetail({ iteration, actionsMapper, campaignDates }: Props) {
+export default function IterationDetail({ iteration, actionsMapper, campaignContext }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>('eligibility');
   const { viewMode, updateIteration, working } = useAuthor();
 
@@ -185,7 +186,7 @@ export default function IterationDetail({ iteration, actionsMapper, campaignDate
 
       {/* Validation Panel — always visible */}
       <div className="mb-8">
-        <ValidationPanel iteration={iteration} campaign={campaignDates} />
+        <ValidationPanel iteration={iteration} campaign={campaignContext} />
       </div>
 
       {/* Cohort Table */}
@@ -292,6 +293,20 @@ export default function IterationDetail({ iteration, actionsMapper, campaignDate
         <h3 className="sub-heading">Routing Resolution</h3>
         <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>How CommsRouting strings resolve to actions via the ActionsMapper.</p>
         {buildRoutingResolution(redirectRules, xRules, yRules, iteration, actionsMapper || {})}
+
+        <h3 className="sub-heading" style={{ marginTop: '1.5rem' }}>Fallback Chain</h3>
+        <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
+          The full R / X / Y chain, read top-to-bottom: <em>first match wins</em>. Each link shows
+          the priority group + rule names + CommsRouting code, with the resolved ActionType /
+          description from the ActionsMapper. When no rule matches, the iteration default fires.
+          When that's empty, the campaign default (R only) fires. When that's empty too, no
+          action is returned.
+        </p>
+        <FallbackChainDiagram
+          iteration={iteration}
+          campaignDefault={campaignContext?.DefaultCommsRouting}
+          actionsMapper={actionsMapper}
+        />
       </div>
 
       {/* Tabbed Rule Tables */}
