@@ -209,46 +209,62 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
         <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
           Evaluated in priority order. Person must be a member of a cohort to proceed to rule evaluation for that cohort.
         </p>
-        <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Priority</th>
-                <th>Cohort Label</th>
-                <th>Cohort Group</th>
-                <th>Virtual</th>
-                <th>Positive Description</th>
-                {authorMode && <th></th>}
-              </tr>
-            </thead>
-            <tbody>
-              {cohorts.map((c, i) => {
-                const originalIndex = (iteration.IterationCohorts || []).indexOf(c);
-                return (
-                  <tr
-                    key={i}
-                    style={{cursor: authorMode ? 'pointer' : 'default'}}
-                    onClick={authorMode && originalIndex >= 0 ? () => {
-                      // AuthorPanel owns the cohort editor state — fire a custom event it listens to
-                      window.dispatchEvent(new CustomEvent('campaign-explainer:open-cohort', { detail: { label: c.CohortLabel } }));
-                    } : undefined}
-                  >
-                    <td>{c.Priority ?? '—'}</td>
-                    <td className="font-mono">{c.CohortLabel}</td>
-                    <td>{c.CohortGroup}</td>
-                    <td>{c.Virtual === 'Y' ? <strong>Yes</strong> : 'No'}</td>
-                    <td>{c.PositiveDescription || '—'}</td>
-                    {authorMode && (
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Priority</th>
+                  <th>Cohort Label</th>
+                  <th>Cohort Group</th>
+                  <th>Virtual</th>
+                  <th>Positive Description</th>
+                  <th>Used By</th>
+                  {authorMode && <th></th>}
+                </tr>
+              </thead>
+              <tbody>
+                {cohorts.map((c, i) => {
+                  const originalIndex = (iteration.IterationCohorts || []).indexOf(c);
+                  return (
+                    <tr
+                      key={i}
+                      style={{cursor: authorMode ? 'pointer' : 'default'}}
+                      onClick={authorMode && originalIndex >= 0 ? () => {
+                        // AuthorPanel owns the cohort editor state — fire a custom event it listens to
+                        window.dispatchEvent(new CustomEvent('campaign-explainer:open-cohort', { detail: { label: c.CohortLabel } }));
+                      } : undefined}
+                    >
+                      <td>{c.Priority ?? '—'}</td>
+                      <td className="font-mono">{c.CohortLabel}</td>
+                      <td>{c.CohortGroup}</td>
+                      <td>{c.Virtual === 'Y' ? <strong>Yes</strong> : 'No'}</td>
+                      <td>{c.PositiveDescription || '—'}</td>
                       <td>
                         <button
                           type="button"
-                          className="btn btn--small"
+                          className="cross-refs__inline-hint cross-refs__inline-hint--clickable cross-refs__inline-hint--mini"
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.dispatchEvent(new CustomEvent('campaign-explainer:open-cohort', { detail: { label: c.CohortLabel } }));
+                            window.dispatchEvent(new CustomEvent('campaign-explainer:show-references', {
+                              detail: { kind: 'cohort', id: c.CohortLabel },
+                            }));
                           }}
+                          title={`Show all rules in this iteration scoped to cohort ${c.CohortLabel}`}
                         >
-                          Edit
+                          ↗ find uses
+                        </button>
+                      </td>
+                      {authorMode && (
+                        <td>
+                          <button
+                            type="button"
+                            className="btn btn--small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.dispatchEvent(new CustomEvent('campaign-explainer:open-cohort', { detail: { label: c.CohortLabel } }));
+                            }}
+                          >
+                            Edit
                         </button>
                       </td>
                     )}

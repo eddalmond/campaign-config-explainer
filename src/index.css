@@ -2061,3 +2061,188 @@ body,
   border-color: var(--grey-3);
   color: #e6edf3;
 }
+
+/* Cross-references */
+.cross-refs__inline-hint {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: var(--font-size-sm);
+  color: var(--grey-1);
+}
+.cross-refs__inline-hint--clickable {
+  display: inline-block;
+  background: transparent;
+  border: 0;
+  padding: 0.25rem 0.5rem;
+  font: inherit;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+.cross-refs__inline-hint--clickable:hover {
+  background-color: rgba(0, 94, 184, 0.08);
+  text-decoration: none;
+}
+.cross-refs__inline-hint--mini {
+  margin-top: 0;
+  font-size: 0.75rem;
+  padding: 0.1rem 0.4rem;
+}
+.cross-refs__per-routing {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.cross-refs__empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--grey-1);
+  background-color: var(--grey-5);
+  border: 1px dashed var(--grey-3);
+  border-radius: 4px;
+}
+.cross-refs__iter-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--grey-3);
+  margin-bottom: 0.75rem;
+}
+.cross-refs__iter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: var(--font-size-sm);
+  background-color: var(--grey-5);
+  border: 1px solid var(--grey-3);
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  color: var(--grey-1);
+}
+.cross-refs__iter-chip--active {
+  background-color: #ddf4ff;
+  border-color: #b6e3ff;
+  color: #0969da;
+  font-weight: 600;
+}
+.cross-refs__iter-chip--empty {
+  opacity: 0.5;
+}
+.cross-refs__iter-count {
+  display: inline-block;
+  background-color: rgba(9, 105, 218, 0.15);
+  color: #0969da;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0 0.4rem;
+  min-width: 1rem;
+  text-align: center;
+}
+.cross-refs__section {
+  margin-bottom: 1.25rem;
+}
+.cross-refs__section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: #1f2933;
+}
+.cross-refs__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.cross-refs__item {
+  padding: 0.5rem 0.75rem;
+  background-color: var(--grey-5);
+  border: 1px solid var(--grey-3);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+.cross-refs__item--action {
+  border-left: 3px solid #005eb8;
+}
+.cross-refs__item--rule {
+  border-left: 3px solid #005eb8;
+}
+.cross-refs__item--clickable {
+  cursor: pointer;
+  transition: background-color 0.12s, border-color 0.12s;
+}
+.cross-refs__item--clickable:hover {
+  background-color: #f0f6fc;
+  border-color: var(--primary);
+}
+.cross-refs__item--no-link {
+  cursor: default;
+}
+.cross-refs__item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  color: #1f2933;
+  font-weight: 600;
+}
+.cross-refs__item-name {
+  font-weight: 600;
+}
+.cross-refs__item-meta {
+  font-size: 0.75rem;
+  color: var(--grey-1);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.cross-refs__item-context {
+  font-size: 0.8rem;
+  color: var(--grey-1);
+}
+.cross-refs__item-loc {
+  font-size: 0.75rem;
+  color: var(--grey-1);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.cross-refs__item-jump {
+  color: var(--primary);
+  font-weight: 600;
+  margin-left: auto;
+}
+
+[data-theme="dark"] .cross-refs__empty,
+[data-theme="dark"] .cross-refs__item {
+  background-color: var(--grey-4);
+  border-color: var(--grey-3);
+}
+[data-theme="dark"] .cross-refs__item--clickable:hover {
+  background-color: rgba(0, 94, 184, 0.12);
+  border-color: var(--primary);
+}
+[data-theme="dark"] .cross-refs__iter-chip--active {
+  background-color: rgba(56, 139, 253, 0.15);
+  border-color: rgba(56, 139, 253, 0.4);
+  color: #58a6ff;
+}
+[data-theme="dark"] .cross-refs__iter-count {
+  background-color: rgba(56, 139, 253, 0.25);
+  color: #58a6ff;
+}
+[data-theme="dark"] .cross-refs__section-title,
+[data-theme="dark"] .cross-refs__item-header {
+  color: #e6edf3;
+}

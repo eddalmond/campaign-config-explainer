@@ -9,6 +9,8 @@ import {
 } from '../data/catalog';
 import { explainOperator, explainRule, type RuleGroupContext } from '../utils/explain';
 import { useRecentAttributes } from '../hooks/useRecentAttributes';
+import { countReferences } from '../utils/crossReferences';
+import type { CampaignConfig } from '../types/campaign';
 import { Field, NumberInput, Select, TextInput, Textarea, MultiSelect, Checkbox } from './FormControls';
 import Drawer from './Drawer';
 
@@ -115,6 +117,14 @@ export default function RuleEditor({ iteration, ruleIndex, onClose, onSave, onDe
 
   const cohortLabelList = (draft.CohortLabel || '').split(',').map(s => s.trim()).filter(Boolean);
   const commsRoutingList = (draft.CommsRouting || '').split('|').map(s => s.trim()).filter(Boolean);
+
+  // Cross-references in this drawer are scoped to the current iteration.
+  // Wrap the iteration in a minimal CampaignConfig shape so countReferences
+  // can be called without a full campaign.
+  const iterationAsCampaign: CampaignConfig = {
+    ID: '', Name: '', Type: '', Target: '', StartDate: '', EndDate: '',
+    IterationFrequency: 'X', Iterations: [iteration],
+  };
 
   // Live preview of operator explanation
   const explanation = useMemo(() => explainOperator(draft), [draft]);
@@ -290,6 +300,40 @@ export default function RuleEditor({ iteration, ruleIndex, onClose, onSave, onDe
                 }))}
                 placeholder="(none)"
               />
+              {draft.AttributeName && currentAttribute && (() => {
+                // Count references across the entire iteration (including this rule).
+                const useCount = countReferences(
+                  iterationAsCampaign,
+                  'attribute',
+                  draft.AttributeName,
+                  { level: draft.AttributeLevel, target: draft.AttributeTarget },
+                );
+                const otherCount = useCount - 1; // exclude self
+                if (otherCount <= 0) {
+                  return (
+                    <span className="cross-refs__inline-hint" title="No other rules in this iteration use this attribute">
+                      Only this rule uses this attribute
+                    </span>
+                  );
+                }
+                return (
+                  <button
+                    type="button"
+                    className="cross-refs__inline-hint cross-refs__inline-hint--clickable"
+                    onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:show-references', {
+                      detail: {
+                        kind: 'attribute',
+                        id: draft.AttributeName,
+                        level: draft.AttributeLevel,
+                        target: draft.AttributeTarget,
+                      },
+                    }))}
+                    title={`Show all ${otherCount + 1} rules in this iteration using ${draft.AttributeName}`}
+                  >
+                    ↗ Used in {otherCount + 1} rules in this iteration — click to see
+                  </button>
+                );
+              })()}
             </Field>
           )}
         </div>
@@ -372,6 +416,40 @@ export default function RuleEditor({ iteration, ruleIndex, onClose, onSave, onDe
               <span className="form-hint">
                 ⚠ No actions defined in ActionsMapper yet. Add some in the ActionsMapper section first.
               </span>
+            )}
+            {/* Cross-reference hints per code */}
+            {commsRoutingList.length > 0 && (
+              <div className="cross-refs__per-routing">
+                {commsRoutingList.map(code => {
+                  const refs = countReferences(
+                    iterationAsCampaign,
+                    'routing',
+                    code,
+                  );
+                  const otherRefs = refs - 1; // exclude self
+                  const hasAction = !!(iteration.ActionsMapper || {})[code];
+                  if (otherRefs <= 0 && hasAction) {
+                    return (
+                      <span key={code} className="cross-refs__inline-hint">
+                        <code className="code-inline">{code}</code> · defined in ActionsMapper · only used by this rule
+                      </span>
+                    );
+                  }
+                  return (
+                    <button
+                      key={code}
+                      type="button"
+                      className="cross-refs__inline-hint cross-refs__inline-hint--clickable"
+                      onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:show-references', {
+                        detail: { kind: 'routing', id: code },
+                      }))}
+                      title={`Show all ${refs} rules + the ActionsMapper entry using ${code}`}
+                    >
+                      ↗ <code className="code-inline">{code}</code> — used in {refs} rule{refs === 1 ? '' : 's'}{hasAction ? ' + ActionsMapper' : ''} — click to see
+                    </button>
+                  );
+                })}
+              </div>
             )}
           </Field>
         )}

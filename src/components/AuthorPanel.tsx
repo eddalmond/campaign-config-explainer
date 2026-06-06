@@ -10,6 +10,7 @@ import JsonPreview from './JsonPreview';
 import { CohortsOverviewDrawer, RulesOverviewDrawer, ActionsOverviewDrawer } from './OverviewDrawers';
 import Drawer from './Drawer';
 import CompareIterationsDrawer from './CompareIterationsDrawer';
+import CrossReferencesDrawer from './CrossReferencesDrawer';
 import AdvancedFields from './AdvancedFields';
 
 interface Props {
@@ -34,7 +35,8 @@ type LocalEditor =
   | { kind: 'cohorts-overview' }
   | { kind: 'rules-overview' }
   | { kind: 'actions-overview' }
-  | { kind: 'compare-iterations' };
+  | { kind: 'compare-iterations' }
+  | { kind: 'cross-refs'; query: { kind: 'attribute' | 'routing' | 'cohort'; id: string; level?: string; target?: string } };
 
 export default function AuthorPanel({
   iteration,
@@ -81,15 +83,25 @@ export default function AuthorPanel({
         case 'compare-iterations':
           setLocal({ kind: 'compare-iterations' });
           break;
+        case 'show-references':
+          // Detail is the reference query — set in the onShowReferences helper.
+          // (handled below via a separate dedicated event for clarity)
+          break;
       }
+    };
+    const onShowReferences = (e: Event) => {
+      const detail = (e as CustomEvent<{ kind: 'attribute' | 'routing' | 'cohort'; id: string; level?: string; target?: string }>).detail;
+      setLocal({ kind: 'cross-refs', query: detail });
     };
     window.addEventListener('campaign-explainer:open-cohort', onOpenCohort);
     window.addEventListener('campaign-explainer:open-action', onOpenAction);
     window.addEventListener('campaign-explainer:edit-section', onEditSection);
+    window.addEventListener('campaign-explainer:show-references', onShowReferences);
     return () => {
       window.removeEventListener('campaign-explainer:open-cohort', onOpenCohort);
       window.removeEventListener('campaign-explainer:open-action', onOpenAction);
       window.removeEventListener('campaign-explainer:edit-section', onEditSection);
+      window.removeEventListener('campaign-explainer:show-references', onShowReferences);
     };
   }, []);
 
@@ -355,6 +367,18 @@ export default function AuthorPanel({
         <CompareIterationsDrawer
           iterations={iterations}
           defaultFromId={iteration.ID}
+          onClose={closeLocal}
+        />
+      )}
+
+      {/* Cross-references ("where is this used?") */}
+      {local?.kind === 'cross-refs' && working && (
+        <CrossReferencesDrawer
+          config={working}
+          kind={local.query.kind}
+          query={local.query.id}
+          level={local.query.level}
+          target={local.query.target}
           onClose={closeLocal}
         />
       )}

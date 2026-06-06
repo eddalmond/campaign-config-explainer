@@ -4,7 +4,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   title: string;
-  subtitle?: string;
+  subtitle?: ReactNode;
   footer?: ReactNode;
   width?: number;
   children: ReactNode;
