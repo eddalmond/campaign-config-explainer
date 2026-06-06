@@ -1,13 +1,26 @@
 import type { Rule } from '../types/campaign';
 import { explainOperator, lookupAttribute, lookupOperator } from '../utils/explain';
+import { sortWithOriginalIndex } from '../utils/sortWithIndex';
 
 interface Props {
   filterRules: Rule[];
   suppressionRules: Rule[];
+  /** All rules in iteration order, needed to map sorted rows back to their original index. */
+  allRulesInOrder?: Rule[];
+  onEditRule?: (originalIndex: number) => void;
 }
 
-export default function EligibilityRulesTable({ filterRules, suppressionRules }: Props) {
+export default function EligibilityRulesTable({ filterRules, suppressionRules, allRulesInOrder, onEditRule }: Props) {
+  const original = allRulesInOrder ?? [...filterRules, ...suppressionRules];
   const allRules = [...filterRules, ...suppressionRules].sort((a, b) => a.Type.localeCompare(b.Type) || a.Priority - b.Priority);
+  const sortedMap = sortWithOriginalIndex(
+    original,
+    (a, b) => a.Type.localeCompare(b.Type) || a.Priority - b.Priority,
+  );
+  const lookupOriginal = (rule: Rule) => {
+    const idx = sortedMap.sorted.indexOf(rule);
+    return idx >= 0 ? sortedMap.originalIndex(idx) : -1;
+  };
 
   if (allRules.length === 0) {
     return <p className="page-description">No eligibility rules defined.</p>;
@@ -16,19 +29,20 @@ export default function EligibilityRulesTable({ filterRules, suppressionRules }:
   return (
     <div className="table-container">
       <table className="data-table">
-        <thead>
-          <tr>
-            <th>Type</th>
-            <th>Priority</th>
-            <th>Name</th>
-            <th>Attribute Level</th>
-            <th>Attribute Name</th>
-            <th>Operator</th>
-            <th>Comparator</th>
-            <th>Cohort Scope</th>
-            <th>RuleStop</th>
-          </tr>
-        </thead>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Priority</th>
+                <th>Name</th>
+                <th>Attribute Level</th>
+                <th>Attribute Name</th>
+                <th>Operator</th>
+                <th>Comparator</th>
+                <th>Cohort Scope</th>
+                <th>RuleStop</th>
+                {onEditRule && <th></th>}
+              </tr>
+            </thead>
           <tbody>
             {allRules.map((r, i) => {
               const scope = r.CohortLabel
@@ -40,7 +54,7 @@ export default function EligibilityRulesTable({ filterRules, suppressionRules }:
               const isUnknownAttribute = r.AttributeName && !attr;
               const isUnknownOperator = r.Operator && !op;
               return (
-                <tr key={`${r.Type}_${i}`} style={{cursor: 'pointer'}}>
+                <tr key={`${r.Type}_${i}`} style={{cursor: onEditRule ? 'pointer' : 'default'}} onClick={onEditRule ? () => onEditRule(lookupOriginal(r)) : undefined}>
                   <td>
                     <span className={`badge ${r.Type === 'F' ? 'bg-red' : 'bg-orange'}`}>
                       {r.Type}
@@ -73,6 +87,18 @@ export default function EligibilityRulesTable({ filterRules, suppressionRules }:
                   </td>
                   <td>{scope}</td>
                   <td>{r.RuleStop === true || r.RuleStop === 'Y' ? '⛔ Yes' : '—'}</td>
+                  {onEditRule && (
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn--small"
+                        onClick={(e) => { e.stopPropagation(); onEditRule(lookupOriginal(r)); }}
+                        title="Edit this rule"
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  )}
                 </tr>
               );
             })}

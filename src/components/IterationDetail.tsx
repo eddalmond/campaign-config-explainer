@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Iteration, Rule, Cohort, ActionMapping } from '../types/campaign';
+import { useAuthor } from '../hooks/AuthorContext';
 import MermaidDiagram from './MermaidDiagram';
 import EligibilityRulesTable from './EligibilityRulesTable';
 import ActionRulesTable from './ActionRulesTable';
 import ActionsMapperTable from './ActionsMapperTable';
 import ValidationPanel from './ValidationPanel';
 import TemplateChips from './TemplateChips';
+import AuthorPanel from './AuthorPanel';
 
 interface Props {
   iteration: Iteration;
@@ -16,6 +18,11 @@ type TabId = 'eligibility' | 'action' | 'actions-mapper' | 'rules-mapper';
 
 export default function IterationDetail({ iteration, actionsMapper }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>('eligibility');
+  const { viewMode, updateIteration } = useAuthor();
+
+  // The author-mode flow manages its own editors via AuthorPanel — it ignores
+  // the current activeTab and shows the actions inline.
+  const authorMode = viewMode === 'author';
 
   const filterRules = (iteration.IterationRules || [])
     .filter(r => r.Type === 'F')
@@ -39,6 +46,38 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
 
   const cohorts = [...(iteration.IterationCohorts || [])].sort((a, b) => (a.Priority ?? 999) - (b.Priority ?? 999));
 
+  // Rule-editing drawer state (only used in author mode)
+  const [editingRule, setEditingRule] = useState<{ index: number } | { new: true } | null>(null);
+
+  // Listen for the "open new rule" event from AuthorPanel's "+ Add Rule" button.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = () => setEditingRule({ new: true });
+    window.addEventListener('campaign-explainer:open-new-rule', handler);
+    return () => window.removeEventListener('campaign-explainer:open-new-rule', handler);
+  }, []);
+
+  const openEditRule = (originalIndex: number) => setEditingRule({ index: originalIndex });
+  const closeEditor = () => setEditingRule(null);
+
+  const saveRule = (rule: Rule, originalIndex: number | null) => {
+    updateIteration(iteration.ID, (it) => {
+      const rules = [...(it.IterationRules || [])];
+      if (originalIndex === null) rules.push(rule);
+      else rules[originalIndex] = rule;
+      return { ...it, IterationRules: rules };
+    });
+    closeEditor();
+  };
+  const deleteRule = (index: number) => {
+    updateIteration(iteration.ID, (it) => {
+      const rules = [...(it.IterationRules || [])];
+      rules.splice(index, 1);
+      return { ...it, IterationRules: rules };
+    });
+    closeEditor();
+  };
+
   const tabs: { id: TabId; label: string }[] = [
     { id: 'eligibility', label: 'Eligibility Rules (F/S)' },
     { id: 'action', label: 'Action Rules (R/X/Y)' },
@@ -56,7 +95,7 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
         <h2 className="section-heading mt-0">
           Iteration: {iteration.Name || iteration.ID}
         </h2>
-        
+
         <div className="data-grid">
           <div className="data-item data-item--blue">
             <div className="data-item__label">ID</div>
@@ -116,7 +155,7 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
         </div>
       </div>
 
-      {/* Validation Panel */}
+      {/* Validation Panel — always visible */}
       <div className="mb-8">
         <ValidationPanel iteration={iteration} />
       </div>
@@ -138,18 +177,43 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
                 <th>Cohort Group</th>
                 <th>Virtual</th>
                 <th>Positive Description</th>
+                {authorMode && <th></th>}
               </tr>
             </thead>
             <tbody>
-              {cohorts.map((c, i) => (
-                <tr key={i}>
-                  <td>{c.Priority ?? '—'}</td>
-                  <td className="font-mono">{c.CohortLabel}</td>
-                  <td>{c.CohortGroup}</td>
-                  <td>{c.Virtual === 'Y' ? <strong>Yes</strong> : 'No'}</td>
-                  <td>{c.PositiveDescription || '—'}</td>
-                </tr>
-              ))}
+              {cohorts.map((c, i) => {
+                const originalIndex = (iteration.IterationCohorts || []).indexOf(c);
+                return (
+                  <tr
+                    key={i}
+                    style={{cursor: authorMode ? 'pointer' : 'default'}}
+                    onClick={authorMode && originalIndex >= 0 ? () => {
+                      // AuthorPanel owns the cohort editor state — fire a custom event it listens to
+                      window.dispatchEvent(new CustomEvent('campaign-explainer:open-cohort', { detail: { label: c.CohortLabel } }));
+                    } : undefined}
+                  >
+                    <td>{c.Priority ?? '—'}</td>
+                    <td className="font-mono">{c.CohortLabel}</td>
+                    <td>{c.CohortGroup}</td>
+                    <td>{c.Virtual === 'Y' ? <strong>Yes</strong> : 'No'}</td>
+                    <td>{c.PositiveDescription || '—'}</td>
+                    {authorMode && (
+                      <td>
+                        <button
+                          type="button"
+                          className="btn btn--small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.dispatchEvent(new CustomEvent('campaign-explainer:open-cohort', { detail: { label: c.CohortLabel } }));
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -157,9 +221,7 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
 
       {/* Phase 1: Eligibility Flow */}
       <div className="mb-8">
-        <span className="badge badge--phase">
-          Phase 1
-        </span>
+        <span className="badge badge--phase">Phase 1</span>
         <h2 style={{fontSize: 'var(--font-size-xl)', fontWeight: 700, marginTop: '0.5rem', marginBottom: '1rem'}}>Eligibility Flow — "Who is eligible?"</h2>
         <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
           For each cohort (by priority), the system checks: base eligibility (cohort membership) →
@@ -173,9 +235,7 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
 
       {/* Phase 2: Action Routing */}
       <div className="mb-8">
-        <span className="badge badge--phase">
-          Phase 2
-        </span>
+        <span className="badge badge--phase">Phase 2</span>
         <h2 style={{fontSize: 'var(--font-size-xl)', fontWeight: 700, marginTop: '0.5rem', marginBottom: '1rem'}}>Action Routing — "What happens next?"</h2>
         <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
           Based on the final status from Phase 1, the system selects which action rules to evaluate:
@@ -188,8 +248,7 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
         <div className="mermaid-container">
           <MermaidDiagram code={buildActionRoutingDiagram(redirectRules, xRules, yRules, iteration)} />
         </div>
-        
-        {/* Routing Resolution */}
+
         <h3 className="sub-heading">Routing Resolution</h3>
         <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>How CommsRouting strings resolve to actions via the ActionsMapper.</p>
         {buildRoutingResolution(redirectRules, xRules, yRules, iteration, actionsMapper || {})}
@@ -198,7 +257,7 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
       {/* Tabbed Rule Tables */}
       <div>
         <h2 className="section-heading mt-0">Rule Details</h2>
-        
+
         <div className="tabs-nav">
           {tabs.map(tab => (
             <button
@@ -213,13 +272,29 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
 
         <div className="tab-content">
           {activeTab === 'eligibility' && (
-            <EligibilityRulesTable filterRules={filterRules} suppressionRules={suppressionRules} />
+            <EligibilityRulesTable
+              filterRules={filterRules}
+              suppressionRules={suppressionRules}
+              allRulesInOrder={iteration.IterationRules}
+              onEditRule={authorMode ? openEditRule : undefined}
+            />
           )}
           {activeTab === 'action' && (
-            <ActionRulesTable rRules={redirectRules} xRules={xRules} yRules={yRules} />
+            <ActionRulesTable
+              rRules={redirectRules}
+              xRules={xRules}
+              yRules={yRules}
+              allRulesInOrder={iteration.IterationRules}
+              onEditRule={authorMode ? openEditRule : undefined}
+            />
           )}
           {activeTab === 'actions-mapper' && (
-            <ActionsMapperTable mapper={actionsMapper || {}} />
+            <ActionsMapperTable
+              mapper={actionsMapper || {}}
+              onEditAction={authorMode ? (key) => {
+                window.dispatchEvent(new CustomEvent('campaign-explainer:open-action', { detail: { key } }));
+              } : undefined}
+            />
           )}
           {activeTab === 'rules-mapper' && iteration.RulesMapper && (
             <div>
@@ -250,6 +325,19 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
           )}
         </div>
       </div>
+
+      {/* Author panel — only renders in author mode. Manages its own editor drawer state
+          (rule/cohort/action/metadata), and also bridges to custom events fired by the
+          read-only tables above (cohort edit, action edit). */}
+      {authorMode && (
+        <AuthorPanel
+          iteration={iteration}
+          editingRule={editingRule}
+          onCloseRuleEditor={closeEditor}
+          onSaveRule={saveRule}
+          onDeleteRule={deleteRule}
+        />
+      )}
     </div>
   );
 }
