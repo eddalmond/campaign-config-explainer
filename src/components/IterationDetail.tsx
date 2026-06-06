@@ -4,6 +4,8 @@ import MermaidDiagram from './MermaidDiagram';
 import EligibilityRulesTable from './EligibilityRulesTable';
 import ActionRulesTable from './ActionRulesTable';
 import ActionsMapperTable from './ActionsMapperTable';
+import ValidationPanel from './ValidationPanel';
+import TemplateChips from './TemplateChips';
 
 interface Props {
   iteration: Iteration;
@@ -62,7 +64,10 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
           </div>
           <div className="data-item data-item--blue">
             <div className="data-item__label">Date</div>
-            <div className="data-item__value">{fmtDate(iteration.IterationDate)}</div>
+            <div className="data-item__value">
+              {fmtDate(iteration.IterationDate)}
+              <TemplateChips text={iteration.IterationDate} />
+            </div>
           </div>
           <div className="data-item data-item--blue">
             <div className="data-item__label">Type</div>
@@ -109,6 +114,11 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
             <div className="data-item__value font-mono">{iteration.DefaultNotActionableRouting || '—'}</div>
           </div>
         </div>
+      </div>
+
+      {/* Validation Panel */}
+      <div className="mb-8">
+        <ValidationPanel iteration={iteration} />
       </div>
 
       {/* Cohort Table */}

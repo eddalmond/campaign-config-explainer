@@ -1,4 +1,5 @@
 import type { Rule } from '../types/campaign';
+import { explainOperator, lookupAttribute, lookupOperator } from '../utils/explain';
 
 interface Props {
   rRules: Rule[];
@@ -44,6 +45,11 @@ export default function ActionRulesTable({ rRules, xRules, yRules }: Props) {
                 ? r.CommsRouting.split('|').map(c => <code key={c} className="code-inline" style={{marginRight: '4px'}}>{c.trim()}</code>)
                 : '—';
               const badgeClass = r.Type === 'R' ? 'badge--r' : r.Type === 'X' ? 'badge--x' : 'badge--y';
+              const attr = lookupAttribute(r);
+              const op = lookupOperator(r.Operator);
+              const explanation = explainOperator(r);
+              const isUnknownAttribute = r.AttributeName && !attr;
+              const isUnknownOperator = r.Operator && !op;
               return (
                 <tr key={`${r.Type}_${i}`}>
                   <td>
@@ -58,11 +64,24 @@ export default function ActionRulesTable({ rRules, xRules, yRules }: Props) {
                   </td>
                   <td>{r.AttributeLevel || '—'}</td>
                   <td>
-                    <code style={{fontSize: 'var(--font-size-xs)'}}>{r.AttributeName || '—'}</code>
+                    <code style={{
+                      fontSize: 'var(--font-size-xs)',
+                      textDecoration: isUnknownAttribute ? 'underline wavy var(--danger)' : 'none',
+                    }}>{r.AttributeName || '—'}</code>
                     {r.AttributeTarget && <div style={{fontSize: 'var(--font-size-xs)', color: 'var(--grey-1)'}}>Target: {r.AttributeTarget}</div>}
                   </td>
-                  <td><code style={{fontSize: 'var(--font-size-xs)'}}>{r.Operator || '—'}</code></td>
-                  <td><code style={{fontSize: 'var(--font-size-xs)'}}>{r.Comparator || '—'}</code></td>
+                  <td>
+                    <code style={{
+                      fontSize: 'var(--font-size-xs)',
+                      textDecoration: isUnknownOperator ? 'underline wavy var(--danger)' : 'none',
+                    }}>{r.Operator || '—'}</code>
+                  </td>
+                  <td>
+                    <code style={{fontSize: 'var(--font-size-xs)'}}>{r.Comparator || '—'}</code>
+                    {r.Operator && r.Comparator && (
+                      <div className="rule-explanation">{explanation}</div>
+                    )}
+                  </td>
                   <td>{routing}</td>
                 </tr>
               );
