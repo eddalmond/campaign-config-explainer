@@ -56,6 +56,14 @@ export default function AuthorControls() {
           <button
             type="button"
             className="btn btn--secondary"
+            onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:edit-section', { detail: { section: 'json' } }))}
+            title="Open a live preview of the working JSON, with optional diff against the loaded snapshot"
+          >
+            View JSON
+          </button>
+          <button
+            type="button"
+            className="btn btn--secondary"
             onClick={handleCopy}
             title="Copy the working copy JSON to the clipboard"
           >

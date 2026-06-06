@@ -92,9 +92,21 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
     <div className="card">
       {/* Iteration Summary */}
       <div className="mb-8">
-        <h2 className="section-heading mt-0">
-          Iteration: {iteration.Name || iteration.ID}
-        </h2>
+        <div className="section-heading-row">
+          <h2 className="section-heading mt-0">
+            Iteration: {iteration.Name || iteration.ID}
+          </h2>
+          {authorMode && (
+            <button
+              type="button"
+              className="btn btn--secondary btn--small section-heading-row__edit"
+              onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:edit-section', { detail: { section: 'iteration' } }))}
+              title="Edit iteration settings (Name, Date, Type, defaults, StatusText)"
+            >
+              Edit iteration settings
+            </button>
+          )}
+        </div>
 
         <div className="data-grid">
           <div className="data-item data-item--blue">
@@ -162,9 +174,21 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
 
       {/* Cohort Table */}
       <div className="mb-8">
-        <h2 className="section-heading">
-          Cohorts ({cohorts.length})
-        </h2>
+        <div className="section-heading-row">
+          <h2 className="section-heading">
+            Cohorts ({cohorts.length})
+          </h2>
+          {authorMode && (
+            <button
+              type="button"
+              className="btn btn--secondary btn--small section-heading-row__edit"
+              onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:edit-section', { detail: { section: 'cohorts' } }))}
+              title="Manage cohorts — add, edit, or jump to the cohort editor"
+            >
+              Manage cohorts
+            </button>
+          )}
+        </div>
         <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
           Evaluated in priority order. Person must be a member of a cohort to proceed to rule evaluation for that cohort.
         </p>
@@ -256,7 +280,29 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
 
       {/* Tabbed Rule Tables */}
       <div>
-        <h2 className="section-heading mt-0">Rule Details</h2>
+        <div className="section-heading-row">
+          <h2 className="section-heading mt-0">Rule Details</h2>
+          {authorMode && (
+            <>
+              <button
+                type="button"
+                className="btn btn--secondary btn--small section-heading-row__edit"
+                onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:edit-section', { detail: { section: 'rules' } }))}
+                title="Open the rule manager — add new rules, see a summary by type"
+              >
+                Manage rules
+              </button>
+              <button
+                type="button"
+                className="btn btn--secondary btn--small section-heading-row__edit"
+                onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:edit-section', { detail: { section: 'actions' } }))}
+                title="Manage the ActionsMapper — add, edit, or audit your action definitions"
+              >
+                Manage actions
+              </button>
+            </>
+          )}
+        </div>
 
         <div className="tabs-nav">
           {tabs.map(tab => (

@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
-import type { Iteration, Rule, Cohort, ActionMapping } from '../types/campaign';
+import type { CampaignConfig, Iteration, Rule, Cohort, ActionMapping } from '../types/campaign';
 import { useAuthor } from '../hooks/AuthorContext';
 import RuleEditor from './RuleEditor';
 import CohortEditor from './CohortEditor';
 import ActionMappingEditor from './ActionMappingEditor';
 import IterationMetadataEditor from './IterationMetadataEditor';
+import CampaignMetadataEditor from './CampaignMetadataEditor';
+import JsonPreview from './JsonPreview';
+import { CohortsOverviewDrawer, RulesOverviewDrawer, ActionsOverviewDrawer } from './OverviewDrawers';
+import Drawer from './Drawer';
 import AdvancedFields from './AdvancedFields';
 
 interface Props {
@@ -18,10 +22,15 @@ interface Props {
 
 type LocalEditor =
   | { kind: 'metadata' }
+  | { kind: 'campaign-metadata' }
+  | { kind: 'json-preview' }
   | { kind: 'cohort-new' }
   | { kind: 'cohort-edit'; label: string }
   | { kind: 'action-new' }
-  | { kind: 'action-edit'; key: string };
+  | { kind: 'action-edit'; key: string }
+  | { kind: 'cohorts-overview' }
+  | { kind: 'rules-overview' }
+  | { kind: 'actions-overview' };
 
 export default function AuthorPanel({
   iteration,
@@ -30,10 +39,10 @@ export default function AuthorPanel({
   onSaveRule,
   onDeleteRule,
 }: Props) {
-  const { updateIteration } = useAuthor();
+  const { updateIteration, update, working, loaded, duplicateIteration, deleteIteration } = useAuthor();
   const [local, setLocal] = useState<LocalEditor | null>(null);
 
-  // Bridge from the custom events fired by the read-only cohort/action tables.
+  // Bridge from the custom events fired by the read-only tables and section headers.
   useEffect(() => {
     const onOpenCohort = (e: Event) => {
       const detail = (e as CustomEvent<{ label: string }>).detail;
@@ -43,11 +52,36 @@ export default function AuthorPanel({
       const detail = (e as CustomEvent<{ key: string }>).detail;
       setLocal({ kind: 'action-edit', key: detail.key });
     };
+    const onEditSection = (e: Event) => {
+      const detail = (e as CustomEvent<{ section: string }>).detail;
+      switch (detail.section) {
+        case 'campaign':
+          setLocal({ kind: 'campaign-metadata' });
+          break;
+        case 'iteration':
+          setLocal({ kind: 'metadata' });
+          break;
+        case 'cohorts':
+          setLocal({ kind: 'cohorts-overview' });
+          break;
+        case 'rules':
+          setLocal({ kind: 'rules-overview' });
+          break;
+        case 'actions':
+          setLocal({ kind: 'actions-overview' });
+          break;
+        case 'json':
+          setLocal({ kind: 'json-preview' });
+          break;
+      }
+    };
     window.addEventListener('campaign-explainer:open-cohort', onOpenCohort);
     window.addEventListener('campaign-explainer:open-action', onOpenAction);
+    window.addEventListener('campaign-explainer:edit-section', onEditSection);
     return () => {
       window.removeEventListener('campaign-explainer:open-cohort', onOpenCohort);
       window.removeEventListener('campaign-explainer:open-action', onOpenAction);
+      window.removeEventListener('campaign-explainer:edit-section', onEditSection);
     };
   }, []);
 
@@ -104,6 +138,12 @@ export default function AuthorPanel({
     closeLocal();
   };
 
+  // --- Campaign-level metadata ops ---
+  const saveCampaignMetadata = (patch: Partial<CampaignConfig>) => {
+    update((c) => ({ ...c, ...patch }));
+    closeLocal();
+  };
+
   const maxCohortPriority = Math.max(0, ...(iteration.IterationCohorts || []).map(c => c.Priority || 0));
 
   // Advanced fields: iteration-level fields we don't have a typed editor for
@@ -136,7 +176,6 @@ export default function AuthorPanel({
     window.dispatchEvent(new CustomEvent('campaign-explainer:open-new-rule'));
   };
 
-  const { duplicateIteration, deleteIteration, working } = useAuthor();
   const isOnlyIteration = (working?.Iterations.length ?? 0) <= 1;
 
   const handleDuplicate = () => {
@@ -244,6 +283,62 @@ export default function AuthorPanel({
           iteration={iteration}
           onClose={closeLocal}
           onSave={saveMetadata}
+        />
+      )}
+
+      {/* Campaign-level metadata editor (top of the page) */}
+      {local?.kind === 'campaign-metadata' && working && (
+        <CampaignMetadataEditor
+          config={working}
+          onClose={closeLocal}
+          onSave={saveCampaignMetadata}
+        />
+      )}
+
+      {/* Live JSON preview (with diff) */}
+      {local?.kind === 'json-preview' && working && loaded && (
+        <Drawer
+          open
+          onClose={closeLocal}
+          width={720}
+          title="Working JSON"
+          subtitle="Live preview of the working copy, with optional diff against the loaded snapshot"
+        >
+          <div className="json-preview-wrap">
+            <JsonPreview working={working} loaded={loaded} />
+          </div>
+        </Drawer>
+      )}
+
+      {/* Cohorts overview — quick entry into Add Cohort + list of existing */}
+      {local?.kind === 'cohorts-overview' && (
+        <CohortsOverviewDrawer
+          iteration={iteration}
+          onClose={closeLocal}
+          onAdd={() => setLocal({ kind: 'cohort-new' })}
+          onEdit={(label) => setLocal({ kind: 'cohort-edit', label })}
+        />
+      )}
+
+      {/* Rules overview — switch to add new rule, with quick guidance */}
+      {local?.kind === 'rules-overview' && (
+        <RulesOverviewDrawer
+          iteration={iteration}
+          onClose={closeLocal}
+          onAddRule={() => {
+            closeLocal();
+            openNewRule();
+          }}
+        />
+      )}
+
+      {/* Actions overview — entry into Add Action + list */}
+      {local?.kind === 'actions-overview' && (
+        <ActionsOverviewDrawer
+          iteration={iteration}
+          onClose={closeLocal}
+          onAdd={() => setLocal({ kind: 'action-new' })}
+          onEdit={(key) => setLocal({ kind: 'action-edit', key })}
         />
       )}
 

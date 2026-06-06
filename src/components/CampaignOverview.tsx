@@ -69,7 +69,19 @@ export default function CampaignOverview({ config, currentIterationIndex, onIter
 
   return (
     <div className="card">
-      <h2 className="section-heading mt-0">Campaign Overview</h2>
+      <div className="section-heading-row">
+        <h2 className="section-heading mt-0">Campaign Overview</h2>
+        {viewMode === 'author' && (
+          <button
+            type="button"
+            className="btn btn--secondary btn--small section-heading-row__edit"
+            onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:edit-section', { detail: { section: 'campaign' } }))}
+            title="Edit campaign-level fields (Name, Type, dates, Manager/Approver/Reviewer, defaults)"
+          >
+            Edit campaign settings
+          </button>
+        )}
+      </div>
 
       <div className="data-grid mb-6">
         <div className="data-item data-item--blue">
