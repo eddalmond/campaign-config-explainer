@@ -238,6 +238,23 @@ details > summary {
   font-weight: 600;
 }
 
+/* Quick-start row (Try a sample / Blank config) */
+.quick-start {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--grey-3);
+}
+
+.quick-start__label {
+  font-size: var(--font-size-sm);
+  color: var(--grey-1);
+  margin-right: 0.25rem;
+}
+
 /* Select Box */
 .select-input {
   width: 100%;
@@ -1110,6 +1127,10 @@ details > summary {
 [data-theme="dark"] .btn--danger-text:disabled {
   color: var(--grey-2);
   border-color: var(--grey-3);
+}
+
+[data-theme="dark"] .quick-start {
+  border-top-color: var(--grey-3);
 }
 
 /* Header layout helpers */

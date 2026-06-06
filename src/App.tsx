@@ -3,6 +3,7 @@ import type { CampaignConfig } from './types/campaign';
 import { useTheme } from './hooks/useTheme';
 import { useAuthorState } from './hooks/useAuthorState';
 import { AuthorContext } from './hooks/AuthorContext';
+import { SAMPLE_CONFIG, BLANK_CONFIG } from './data/sampleConfig';
 import CampaignOverview from './components/CampaignOverview';
 import IterationDetail from './components/IterationDetail';
 import ThemeToggle from './components/ThemeToggle';
@@ -46,6 +47,14 @@ function App() {
     if (!rawInput.trim()) return;
     handleFileLoad(rawInput);
   }, [rawInput, handleFileLoad]);
+
+  const handleLoadSample = useCallback(() => {
+    handleFileLoad(JSON.stringify(SAMPLE_CONFIG));
+  }, [handleFileLoad]);
+
+  const handleLoadBlank = useCallback(() => {
+    handleFileLoad(JSON.stringify(BLANK_CONFIG));
+  }, [handleFileLoad]);
 
   // The iteration we display is the one from the working copy in author mode
   // (so edits show up immediately), or the loaded snapshot in view mode.
@@ -108,6 +117,26 @@ function App() {
               {displayConfig && !error && (
                 <span className="message-success">✓ Loaded: {displayConfig.Name}</span>
               )}
+            </div>
+
+            <div className="quick-start">
+              <span className="quick-start__label">Or start from:</span>
+              <button
+                type="button"
+                className="btn btn--secondary btn--small"
+                onClick={handleLoadSample}
+                title="Load a minimal config that exercises every rule type, attribute level, and template token. Useful for exploring the tool."
+              >
+                Try a sample
+              </button>
+              <button
+                type="button"
+                className="btn btn--secondary btn--small"
+                onClick={handleLoadBlank}
+                title="Load an empty config with one iteration and no rules, cohorts, or actions."
+              >
+                Blank config
+              </button>
             </div>
           </div>
 
