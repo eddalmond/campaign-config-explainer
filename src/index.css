@@ -1599,3 +1599,72 @@ body,
   background-color: var(--grey-4);
   border-color: var(--grey-3);
 }
+
+/* Rule sentence hero block (top of RuleEditor drawer) */
+.rule-sentence {
+  margin: 0 0 1.25rem 0;
+  padding: 0.875rem 1rem;
+  background-color: #f0f6fc;
+  border-left: 4px solid var(--primary);
+  border-radius: 0 4px 4px 0;
+}
+.rule-sentence__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 0.25rem;
+}
+.rule-sentence__text {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #1f2933;
+}
+.rule-sentence[data-rule-type="F"] { border-left-color: #d81e05; }
+.rule-sentence[data-rule-type="F"] .rule-sentence__label { color: #d81e05; }
+.rule-sentence[data-rule-type="S"] { border-left-color: #e68300; }
+.rule-sentence[data-rule-type="S"] .rule-sentence__label { color: #e68300; }
+.rule-sentence[data-rule-type="R"] { border-left-color: #005eb8; }
+.rule-sentence[data-rule-type="R"] .rule-sentence__label { color: #005eb8; }
+.rule-sentence[data-rule-type="X"] { border-left-color: #7C2855; }
+.rule-sentence[data-rule-type="X"] .rule-sentence__label { color: #7C2855; }
+.rule-sentence[data-rule-type="Y"] { border-left-color: #8a6d3b; }
+.rule-sentence[data-rule-type="Y"] .rule-sentence__label { color: #8a6d3b; }
+
+[data-theme="dark"] .rule-sentence {
+  background-color: rgba(0, 94, 184, 0.08);
+}
+[data-theme="dark"] .rule-sentence__text {
+  color: #e6edf3;
+}
+
+/* Iteration summary hero block (top of iteration card) */
+.iteration-sentence {
+  margin: 0.5rem 0 1.5rem 0;
+  padding: 0.875rem 1rem;
+  background-color: var(--grey-5);
+  border: 1px solid var(--grey-3);
+  border-left: 4px solid var(--primary);
+  border-radius: 0 4px 4px 0;
+}
+.iteration-sentence__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 0.4rem;
+}
+.iteration-sentence__line {
+  margin: 0.25rem 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #1f2933;
+}
+[data-theme="dark"] .iteration-sentence {
+  background-color: var(--grey-4);
+}
+[data-theme="dark"] .iteration-sentence__line {
+  color: #e6edf3;
+}
