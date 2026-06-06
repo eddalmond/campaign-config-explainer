@@ -141,26 +141,91 @@ The simulator:
   comma-separated two-bound comparators, and `in` uses comma-
   separated lists. All do-able.
 
-## Open question for the user
+## Direction change (June 2026)
 
-The DDB lineage details the user shared are interesting but the
-simulator's evaluator doesn't actually need them — we just need
-the *schema* of the person record. So the question is: should v1
-have a "Load from DDB (mock)" button that pre-fills the JSON
-editor with a sample record, using the schema the user described?
+The user's instinct: instead of pasting JSON + reimplementing the
+evaluator in JS, **call the real integration API**.
 
-Pros:
-- Educational: shows the user what the API actually receives
-- Saves typing for common cases
+Why this is better:
+- The API does the real evaluation — no chance of our JS evaluator
+  silently diverging from production
+- We display the result + any audit trace the API already produces
+- No need to implement 30 operators in JS
+- More authoritative — the user sees what the API would actually
+  return, not what a JS reimplementation thinks it would return
+- We don't have to keep up with schema changes; the API is the
+  source of truth
 
-Cons:
-- We don't have a real DDB, so the mock has to be hand-crafted
-- Adds a dependency on the mock staying in sync with the real schema
+## Open questions before v1 can be scoped
 
-My recommendation: do a small sample-records dropdown (4-5 curated
-personas, typed against the schema) without trying to mock the DDB.
-The lineage details are useful for the user to know, but the
-simulator doesn't need to reproduce them.
+These need answers from the user before I can start building:
+
+1. **What endpoint do we hit?** Is there a documented
+   `/simulate` or `/evaluate` endpoint, or is it the same
+   `/evaluate` the real call would use? Does it accept a
+   sample NHS number + an iteration config?
+2. **What does the response shape look like?** Specifically:
+   - Does the response include a per-rule trace (which rules
+     fired, in what order, with what inputs)? Or just the
+     final decision?
+   - Does the response include the cohort-membership decision
+     (which cohorts the person matched), or is that implicit?
+   - Does the response include the ActionsMapper resolution
+     (what the final routing code actually does), or do we
+     look that up ourselves?
+3. **Does the API have a "no real evaluation, just trace the
+   rules" mode for development?** Or do we always run the
+   full evaluation?
+4. **How do we handle the case where the API is unreachable?**
+   Options: (a) hard fail with a clear error, (b) fall back
+   to a local JS evaluator, (c) fall back to a cached result.
+   The user probably wants (a) for now — the simulator is a
+   development tool, not a production dependency.
+5. **Auth?** Most likely the integration env is open or
+   requires a static token. Need to know which.
+6. **CORS?** Will the browser be allowed to call the
+   integration env directly, or do we need a proxy?
+
+## Two viable v1 shapes
+
+### Shape A: thin wrapper over the API
+- Drawer with: NHS number input + iteration picker (the
+  current iteration is pre-filled) + a few "what does the
+  API receive" preset buttons
+- "Run simulation" button → POST to the API → display the
+  response verbatim + format any trace into a human-readable
+  view
+- Effort: ~4-5h. The hard part is parsing the response shape,
+  which we won't know until (1-2) above are answered.
+
+### Shape B: hybrid — API when reachable, local evaluator as
+fallback for offline authoring
+- Same as Shape A, but with a JS evaluator as a fallback when
+  the API is down
+- Effort: ~10-12h (the JS evaluator is most of the work)
+
+My recommendation: **Shape A first**. The JS fallback is
+genuine extra work and we have no current evidence the API
+will be down often enough to justify it.
+
+## What's needed from the user
+
+Before I start, ideally:
+- (1) and (2) above — the endpoint + response shape
+- A sample API request + response (so I can see the real shape
+  rather than guessing)
+- Confirmation on (4) — what's the desired offline behaviour
+
+Without (1) and (2) I'd be guessing at the response shape, which
+usually means a rewrite when reality hits.
+
+## If we want to do *something* now
+
+While the API design is being thought through, the smaller items
+(PR-7 markdown preview, PR-8 virtual cohort naming, PR-9 GUID
+validation) are good candidates — they're all < 2h, high-value,
+and unblock authoring rather than requiring external system
+knowledge.
 
 ## Effort
 
