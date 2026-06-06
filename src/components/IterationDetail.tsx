@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { Iteration, Rule, Cohort, ActionMapping } from '../types/campaign';
 import { useAuthor } from '../hooks/AuthorContext';
 import MermaidDiagram from './MermaidDiagram';
@@ -8,6 +8,7 @@ import ActionsMapperTable from './ActionsMapperTable';
 import ValidationPanel from './ValidationPanel';
 import TemplateChips from './TemplateChips';
 import AuthorPanel from './AuthorPanel';
+import { explainIteration } from '../utils/explain';
 
 interface Props {
   iteration: Iteration;
@@ -88,6 +89,9 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
     tabs.push({ id: 'rules-mapper', label: 'RulesMapper' });
   }
 
+  // Plain-English summary of the whole iteration
+  const iterationSentences = useMemo(() => explainIteration(iteration), [iteration]);
+
   return (
     <div className="card">
       {/* Iteration Summary */}
@@ -107,6 +111,15 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
             </button>
           )}
         </div>
+
+        {iterationSentences.length > 0 && (
+          <div className="iteration-sentence">
+            <div className="iteration-sentence__label">In plain English</div>
+            {iterationSentences.map((s, i) => (
+              <p key={i} className="iteration-sentence__line">{s}</p>
+            ))}
+          </div>
+        )}
 
         <div className="data-grid">
           <div className="data-item data-item--blue">

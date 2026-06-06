@@ -7,7 +7,8 @@ import {
   operatorsForType,
   type AttributeDef,
 } from '../data/catalog';
-import { explainOperator } from '../utils/explain';
+import { explainOperator, explainRule } from '../utils/explain';
+import { useRecentAttributes } from '../hooks/useRecentAttributes';
 import { Field, NumberInput, Select, TextInput, Textarea, MultiSelect, Checkbox } from './FormControls';
 import Drawer from './Drawer';
 
@@ -59,6 +60,7 @@ export default function RuleEditor({ iteration, ruleIndex, onClose, onSave, onDe
     () => Math.max(0, ...(iteration.IterationRules || []).map(r => r.Priority || 0)),
     [iteration.IterationRules],
   );
+  const { remember, sortByRecency } = useRecentAttributes();
 
   const [draft, setDraft] = useState<Rule>(() => original ? structuredClone(original) : makeBlankRule('F', maxPriority));
 
@@ -68,12 +70,14 @@ export default function RuleEditor({ iteration, ruleIndex, onClose, onSave, onDe
     setDraft(original ? structuredClone(original) : makeBlankRule('F', maxPriority));
   }, [ruleIndex, original, maxPriority]);
 
-  // Derived: attribute catalog filtered by the current level+target.
+  // Derived: attribute catalog filtered by the current level+target,
+  // then sorted so recently-used attributes float to the top.
   const attributeOptions = useMemo(() => {
     if (!draft.AttributeLevel) return [] as AttributeDef[];
     const target = draft.AttributeLevel === 'TARGET' ? draft.AttributeTarget : undefined;
-    return attributesForLevel(draft.AttributeLevel, target);
-  }, [draft.AttributeLevel, draft.AttributeTarget]);
+    const all = attributesForLevel(draft.AttributeLevel, target);
+    return sortByRecency(all);
+  }, [draft.AttributeLevel, draft.AttributeTarget, sortByRecency]);
 
   const currentAttribute = getAttribute(draft.AttributeName, draft.AttributeLevel, draft.AttributeTarget);
   const validOperators = useMemo(
@@ -114,6 +118,15 @@ export default function RuleEditor({ iteration, ruleIndex, onClose, onSave, onDe
 
   // Live preview of operator explanation
   const explanation = useMemo(() => explainOperator(draft), [draft]);
+  // Full natural-language sentence of the whole rule
+  const ruleSentence = useMemo(() => explainRule(draft), [draft]);
+
+  const handleSave = () => {
+    if (draft.AttributeName && draft.AttributeLevel) {
+      remember(draft.AttributeName, draft.AttributeLevel, draft.AttributeTarget || '');
+    }
+    onSave(draft, ruleIndex);
+  };
 
   const errors: string[] = [];
   if (!draft.Name?.trim()) errors.push('Name is required');
@@ -156,7 +169,7 @@ export default function RuleEditor({ iteration, ruleIndex, onClose, onSave, onDe
             type="button"
             className="btn btn--primary"
             disabled={errors.length > 0}
-            onClick={() => onSave(draft, ruleIndex)}
+            onClick={handleSave}
             title={errors.length > 0 ? errors.join('; ') : 'Save changes'}
           >
             {isNew ? 'Add Rule' : 'Save'}
@@ -164,6 +177,11 @@ export default function RuleEditor({ iteration, ruleIndex, onClose, onSave, onDe
         </div>
       }
     >
+      <div className="rule-sentence" data-rule-type={draft.Type}>
+        <div className="rule-sentence__label">What this rule does</div>
+        <div className="rule-sentence__text">{ruleSentence}</div>
+      </div>
+
       <div className="form-grid">
         <Field label="Type">
           <Select
