@@ -154,12 +154,19 @@ export function attributesForLevel(level: AttributeLevel, target?: string): Attr
 // ---------------------------------------------------------------------------
 
 export const OPERATORS: OperatorDef[] = [
+  // ---- Comparison ----
   {
     symbol: '=',
     appliesTo: ['flag', 'code', 'text', 'cohort'],
     description: 'equals',
     example: 'CARE_HOME_FLAG = Y',
     comparatorHint: 'value to match exactly',
+  },
+  {
+    symbol: '!=',
+    appliesTo: ['flag', 'code', 'text', 'cohort', 'number'],
+    description: 'not equal (NULL is never matched — use is_null for that)',
+    comparatorHint: 'value to exclude',
   },
   {
     symbol: '<',
@@ -186,6 +193,123 @@ export const OPERATORS: OperatorDef[] = [
     description: 'greater than or equal to',
     comparatorHint: 'a date (YYYYMMDD) or numeric value',
   },
+
+  // ---- String operators ----
+  {
+    symbol: 'contains',
+    appliesTo: ['text', 'code'],
+    description: 'value contains the substring (case-sensitive)',
+    example: 'POSTCODE contains AB1',
+    comparatorHint: 'substring to search for',
+  },
+  {
+    symbol: 'not_contains',
+    appliesTo: ['text', 'code'],
+    description: 'value does NOT contain the substring (case-sensitive)',
+    comparatorHint: 'substring to exclude',
+  },
+  {
+    symbol: 'starts_with',
+    appliesTo: ['text', 'code'],
+    description: 'value starts with the substring',
+    comparatorHint: 'substring prefix',
+  },
+  {
+    symbol: 'not_starts_with',
+    appliesTo: ['text', 'code'],
+    description: 'value does NOT start with the substring',
+    comparatorHint: 'substring prefix to exclude',
+  },
+  {
+    symbol: 'ends_with',
+    appliesTo: ['text', 'code'],
+    description: 'value ends with the substring',
+    comparatorHint: 'substring suffix',
+  },
+
+  // ---- List / set operators ----
+  {
+    symbol: 'in',
+    appliesTo: ['code', 'cohort', 'text'],
+    description: 'value is one of the listed options',
+    example: 'ICB in QH8,QJG',
+    comparatorHint: 'comma-separated list of values, no spaces',
+  },
+  {
+    symbol: 'not_in',
+    appliesTo: ['code', 'cohort', 'text'],
+    description: 'value is NOT one of the listed options',
+    comparatorHint: 'comma-separated list of values to exclude, no spaces',
+  },
+  {
+    symbol: 'MemberOf',
+    appliesTo: ['cohort'],
+    description: 'person is a member of the listed cohort(s)',
+    example: 'COHORT_LABEL MemberOf care_home_residents_older_adults',
+    comparatorHint: 'one or more cohort labels, comma-separated, no spaces',
+  },
+  {
+    symbol: 'NotMemberOf',
+    appliesTo: ['cohort'],
+    description: 'person is NOT a member of the listed cohort(s)',
+    comparatorHint: 'one or more cohort labels, comma-separated, no spaces',
+  },
+
+  // ---- Null operators (no comparator) ----
+  {
+    symbol: 'is_null',
+    appliesTo: ['date', 'flag', 'code', 'cohort', 'text', 'number'],
+    description: 'value is NULL',
+    comparatorHint: null,
+  },
+  {
+    symbol: 'is_not_null',
+    appliesTo: ['date', 'flag', 'code', 'cohort', 'text', 'number'],
+    description: 'value is NOT NULL',
+    comparatorHint: null,
+  },
+
+  // ---- Range operators (two bounds) ----
+  {
+    symbol: 'between',
+    appliesTo: ['date', 'number', 'code'],
+    description: 'value is between two bounds (inclusive)',
+    comparatorHint: 'two values, comma-separated (e.g. 100,200)',
+  },
+  {
+    symbol: 'not_between',
+    appliesTo: ['date', 'number', 'code'],
+    description: 'value is NOT between two bounds (inclusive)',
+    comparatorHint: 'two values, comma-separated (e.g. 100,200)',
+  },
+
+  // ---- Empty / boolean operators (no comparator) ----
+  {
+    symbol: 'is_empty',
+    appliesTo: ['text', 'code'],
+    description: 'value is an empty string',
+    comparatorHint: null,
+  },
+  {
+    symbol: 'is_not_empty',
+    appliesTo: ['text', 'code'],
+    description: 'value is a non-empty string',
+    comparatorHint: null,
+  },
+  {
+    symbol: 'is_true',
+    appliesTo: ['flag'],
+    description: 'boolean value is true',
+    comparatorHint: null,
+  },
+  {
+    symbol: 'is_false',
+    appliesTo: ['flag'],
+    description: 'boolean value is false',
+    comparatorHint: null,
+  },
+
+  // ---- Relative date: years ----
   {
     symbol: 'Y<=',
     appliesTo: ['date'],
@@ -213,6 +337,8 @@ export const OPERATORS: OperatorDef[] = [
     example: 'DATE_OF_BIRTH Y> -75',
     comparatorHint: 'negative integer years (e.g. -75 for "age < 75").',
   },
+
+  // ---- Relative date: days ----
   {
     symbol: 'D<=',
     appliesTo: ['date'],
@@ -239,19 +365,32 @@ export const OPERATORS: OperatorDef[] = [
     description: 'date is within the next N days',
     comparatorHint: 'integer days.',
   },
+
+  // ---- Relative date: weeks ----
   {
-    symbol: 'in',
-    appliesTo: ['code', 'cohort'],
-    description: 'value is one of the listed options',
-    example: 'ICB in QH8,QJG',
-    comparatorHint: 'comma-separated list of values',
+    symbol: 'W<=',
+    appliesTo: ['date'],
+    description: 'date is at least N weeks ago',
+    comparatorHint: 'integer weeks.',
   },
   {
-    symbol: 'MemberOf',
-    appliesTo: ['cohort'],
-    description: 'person is a member of the listed cohort(s)',
-    example: 'COHORT_LABEL MemberOf care_home_residents_older_adults',
-    comparatorHint: 'one or more cohort labels, comma-separated',
+    symbol: 'W<',
+    appliesTo: ['date'],
+    description: 'date is more than N weeks ago',
+    comparatorHint: 'integer weeks.',
+  },
+  {
+    symbol: 'W>=',
+    appliesTo: ['date'],
+    description: 'date is at most N weeks in the future',
+    comparatorHint: 'integer weeks.',
+  },
+  {
+    symbol: 'W>',
+    appliesTo: ['date'],
+    description: 'date is within the next N weeks',
+    example: 'DATE_OF_BIRTH W> 114',
+    comparatorHint: 'integer weeks (e.g. 114 ≈ 2 years 2 months).',
   },
 ];
 

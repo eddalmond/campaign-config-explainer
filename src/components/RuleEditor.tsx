@@ -7,7 +7,7 @@ import {
   operatorsForType,
   type AttributeDef,
 } from '../data/catalog';
-import { explainOperator, explainRule } from '../utils/explain';
+import { explainOperator, explainRule, type RuleGroupContext } from '../utils/explain';
 import { useRecentAttributes } from '../hooks/useRecentAttributes';
 import { Field, NumberInput, Select, TextInput, Textarea, MultiSelect, Checkbox } from './FormControls';
 import Drawer from './Drawer';
@@ -119,7 +119,32 @@ export default function RuleEditor({ iteration, ruleIndex, onClose, onSave, onDe
   // Live preview of operator explanation
   const explanation = useMemo(() => explainOperator(draft), [draft]);
   // Full natural-language sentence of the whole rule
-  const ruleSentence = useMemo(() => explainRule(draft), [draft]);
+  // The group size counts this rule plus any other rules in the same
+  // Type+Priority+Name bucket. We compute this from the draft (so editing
+  // the Name or Priority updates the sentence live) plus the saved
+  // iteration rules (to find siblings).
+  const groupContext: RuleGroupContext = useMemo(() => {
+    if (!draft.Name || draft.Priority == null) {
+      return { groupSize: 1, groupName: null };
+    }
+    const allRules = iteration.IterationRules || [];
+    // Count siblings in the same Type+Priority+Name group, *excluding*
+    // the current rule's own position when editing an existing rule
+    // (otherwise we'd double-count ourselves).
+    const siblings = allRules.filter(
+      (r, idx) =>
+        idx !== ruleIndex &&
+        r.Type === draft.Type &&
+        r.Priority === draft.Priority &&
+        r.Name === draft.Name
+    );
+    const totalInGroup = siblings.length + 1; // +1 for the current rule
+    return {
+      groupSize: totalInGroup,
+      groupName: draft.Name,
+    };
+  }, [iteration.IterationRules, draft.Type, draft.Priority, draft.Name, ruleIndex]);
+  const ruleSentence = useMemo(() => explainRule(draft, groupContext), [draft, groupContext]);
 
   const handleSave = () => {
     if (draft.AttributeName && draft.AttributeLevel) {
@@ -300,9 +325,20 @@ export default function RuleEditor({ iteration, ruleIndex, onClose, onSave, onDe
                   placeholder={
                     draft.Operator?.startsWith('Y') ? '-25' :
                     draft.Operator?.startsWith('D') ? '0' :
-                    draft.Operator === 'in' ? 'VALUE1,VALUE2' :
-                    draft.Operator === 'MemberOf' ? 'cohort_label' :
+                    draft.Operator?.startsWith('W') ? '12' :
+                    draft.Operator === 'in' || draft.Operator === 'not_in' ? 'VALUE1,VALUE2' :
+                    draft.Operator === 'MemberOf' || draft.Operator === 'NotMemberOf' ? 'cohort_label' :
+                    draft.Operator === 'between' || draft.Operator === 'not_between' ? '100,200' :
+                    draft.Operator === 'contains' || draft.Operator === 'not_contains' ? 'substring' :
+                    draft.Operator === 'starts_with' || draft.Operator === 'not_starts_with' ? 'prefix' :
+                    draft.Operator === 'ends_with' ? 'suffix' :
+                    draft.Operator?.startsWith('is_') || draft.Operator?.startsWith('not_') ? '(no value needed)' :
                     'value'
+                  }
+                  disabled={
+                    draft.Operator === 'is_null' || draft.Operator === 'is_not_null' ||
+                    draft.Operator === 'is_empty' || draft.Operator === 'is_not_empty' ||
+                    draft.Operator === 'is_true' || draft.Operator === 'is_false'
                   }
                 />
                 {draft.Operator && draft.Comparator && (
