@@ -50,6 +50,55 @@ export function explainOperator(rule: Pick<Rule, 'Operator' | 'Comparator' | 'At
       case 'D>':  return `date is within the next ${n} days${nvlSuffix}`;
     }
   }
+  if (op.symbol.startsWith('W')) {
+    const { n, nvl } = parseNvlComparator(comparator);
+    if (n == null) return `${op.symbol} ${comparator}`.trim();
+    const nvlSuffix = nvl ? ` (treats null as ${nvl})` : '';
+    switch (op.symbol) {
+      case 'W<=': return `date is at least ${n} weeks ago${nvlSuffix}`;
+      case 'W<':  return `date is more than ${n} weeks ago${nvlSuffix}`;
+      case 'W>=': return `date is at most ${n} weeks in the future${nvlSuffix}`;
+      case 'W>':  return `date is within the next ${n} weeks${nvlSuffix}`;
+    }
+  }
+
+  // between / not_between — comparator is "lower,upper"
+  if (op.symbol === 'between' || op.symbol === 'not_between') {
+    const [lower, upper] = comparator.split(',').map(s => s.trim());
+    if (!lower || !upper) return `${rule.AttributeName ?? 'value'} ${op.symbol} ${comparator}`.trim();
+    return op.symbol === 'between'
+      ? `${rule.AttributeName ?? 'value'} is between ${lower} and ${upper} (inclusive)`
+      : `${rule.AttributeName ?? 'value'} is NOT between ${lower} and ${upper} (inclusive)`;
+  }
+
+  // String operators
+  if (op.symbol === 'contains') return `${rule.AttributeName ?? 'value'} contains "${comparator}"`;
+  if (op.symbol === 'not_contains') return `${rule.AttributeName ?? 'value'} does not contain "${comparator}"`;
+  if (op.symbol === 'starts_with') return `${rule.AttributeName ?? 'value'} starts with "${comparator}"`;
+  if (op.symbol === 'not_starts_with') return `${rule.AttributeName ?? 'value'} does not start with "${comparator}"`;
+  if (op.symbol === 'ends_with') return `${rule.AttributeName ?? 'value'} ends with "${comparator}"`;
+
+  // NotMemberOf — symmetric to MemberOf
+  if (op.symbol === 'NotMemberOf') {
+    const items = comparator.split(',').map(s => s.trim()).filter(Boolean);
+    return items.length > 0
+      ? `person is NOT a member of cohort: ${items.join(', ')}`
+      : `${op.description} (no cohort labels listed)`;
+  }
+  if (op.symbol === 'not_in') {
+    const items = comparator.split(',').map(s => s.trim()).filter(Boolean);
+    return items.length > 0
+      ? `${rule.AttributeName ?? 'value'} is NOT one of: ${items.join(', ')}`
+      : `${op.description} (no values listed)`;
+  }
+
+  // Null / empty / boolean (no comparator)
+  if (op.symbol === 'is_null') return `${rule.AttributeName ?? 'value'} is NULL`;
+  if (op.symbol === 'is_not_null') return `${rule.AttributeName ?? 'value'} is NOT NULL`;
+  if (op.symbol === 'is_empty') return `${rule.AttributeName ?? 'value'} is an empty string`;
+  if (op.symbol === 'is_not_empty') return `${rule.AttributeName ?? 'value'} is a non-empty string`;
+  if (op.symbol === 'is_true') return `${rule.AttributeName ?? 'value'} is true`;
+  if (op.symbol === 'is_false') return `${rule.AttributeName ?? 'value'} is false`;
 
   // Scalar comparators
   return `${rule.AttributeName ?? 'value'} ${op.symbol} ${comparator}`.trim();
@@ -119,11 +168,24 @@ function headlineForRuleType(type: Rule['Type'] | undefined): string {
  *   "X rule at priority 2000: show a not-eligible message via (no routing
  *    configured)."
  */
+export interface RuleGroupContext {
+  /** How many rules share the same Type + Priority + Name. */
+  groupSize: number;
+  /** The shared Name (if any). */
+  groupName: string | null;
+}
+
+/**
+ * Optional second argument to explainRule. When provided, the sentence
+ * mentions when this rule is part of an AND group of N rules with the
+ * same name and priority — e.g. "(AND group 'FutureNBSBooking' — 2 of 2
+ * rules)".
+ */
 export function explainRule(rule: Pick<Rule,
   'Type' | 'Name' | 'Priority' | 'Description' | 'AttributeLevel' |
   'AttributeName' | 'AttributeTarget' | 'Operator' | 'Comparator' |
   'CohortLabel' | 'RuleStop' | 'CommsRouting'
->): string {
+>, groupContext?: RuleGroupContext): string {
   const parts: string[] = [];
   const typeLabel = rule.Type ? `${rule.Type} rule` : 'Rule';
   const priority = rule.Priority != null ? ` at priority ${rule.Priority}` : '';
@@ -153,6 +215,11 @@ export function explainRule(rule: Pick<Rule,
   // RuleStop
   if (rule.RuleStop === true || rule.RuleStop === 'Y') {
     parts.push('(and stop further rule evaluation)');
+  }
+
+  // AND group mention — when 2+ rules share Type+Priority+Name
+  if (groupContext && groupContext.groupSize > 1 && groupContext.groupName) {
+    parts.push(`(AND group "${groupContext.groupName}" — part of ${groupContext.groupSize} rules at this priority that must all match)`);
   }
 
   return parts.join(' ').replace(/\s+/g, ' ').trim();
@@ -197,10 +264,20 @@ export function explainCondition(rule: Pick<Rule,
     if (items.length === 0) return `${attrRef} has no value list set`;
     return `${attrRef} is one of: ${items.join(', ')}`;
   }
+  if (op?.symbol === 'not_in') {
+    const items = (rule.Comparator ?? '').split(',').map(s => s.trim()).filter(Boolean);
+    if (items.length === 0) return `${attrRef} has no exclusion list set`;
+    return `${attrRef} is NOT one of: ${items.join(', ')}`;
+  }
   if (op?.symbol === 'MemberOf') {
     const items = (rule.Comparator ?? '').split(',').map(s => s.trim()).filter(Boolean);
     if (items.length === 0) return `${attrRef} has no cohort labels set`;
     return `${attrRef} is: ${items.join(', ')}`;
+  }
+  if (op?.symbol === 'NotMemberOf') {
+    const items = (rule.Comparator ?? '').split(',').map(s => s.trim()).filter(Boolean);
+    if (items.length === 0) return `${attrRef} has no cohort labels set`;
+    return `${attrRef} is NOT: ${items.join(', ')}`;
   }
 
   // For everything else, use explainOperator then strip the redundant

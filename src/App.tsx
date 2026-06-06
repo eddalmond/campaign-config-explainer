@@ -152,6 +152,7 @@ function App() {
                 <IterationDetail
                   iteration={sortedIterations[currentIterationIndex]}
                   actionsMapper={sortedIterations[currentIterationIndex].ActionsMapper}
+                  campaignDates={displayConfig ? { StartDate: displayConfig.StartDate, EndDate: displayConfig.EndDate } : undefined}
                 />
               )}
             </>

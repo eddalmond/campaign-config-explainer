@@ -4,12 +4,14 @@ import { summarise, validateIteration, type Severity } from '../utils/validation
 
 interface Props {
   iteration: Iteration;
+  /** Optional campaign-level context (start/end dates) for cross-iteration checks. */
+  campaign?: { StartDate?: string; EndDate?: string };
 }
 
 const SEVERITY_ORDER: Severity[] = ['error', 'warning', 'info'];
 
-export default function ValidationPanel({ iteration }: Props) {
-  const issues = useMemo(() => validateIteration(iteration), [iteration]);
+export default function ValidationPanel({ iteration, campaign }: Props) {
+  const issues = useMemo(() => validateIteration(iteration, campaign), [iteration, campaign]);
   const summary = useMemo(() => summarise(issues), [issues]);
   const [activeFilter, setActiveFilter] = useState<Severity | 'all'>('all');
 

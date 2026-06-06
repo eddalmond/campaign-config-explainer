@@ -13,11 +13,14 @@ import { explainIteration } from '../utils/explain';
 interface Props {
   iteration: Iteration;
   actionsMapper?: Record<string, ActionMapping>;
+  /** Optional campaign-level dates — used by the validation panel for
+   *  cross-iteration checks like ITERATION_DATE_OUT_OF_RANGE. */
+  campaignDates?: { StartDate?: string; EndDate?: string };
 }
 
 type TabId = 'eligibility' | 'action' | 'actions-mapper' | 'rules-mapper';
 
-export default function IterationDetail({ iteration, actionsMapper }: Props) {
+export default function IterationDetail({ iteration, actionsMapper, campaignDates }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>('eligibility');
   const { viewMode, updateIteration } = useAuthor();
 
@@ -182,7 +185,7 @@ export default function IterationDetail({ iteration, actionsMapper }: Props) {
 
       {/* Validation Panel — always visible */}
       <div className="mb-8">
-        <ValidationPanel iteration={iteration} />
+        <ValidationPanel iteration={iteration} campaign={campaignDates} />
       </div>
 
       {/* Cohort Table */}

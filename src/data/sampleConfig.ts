@@ -134,6 +134,20 @@ export const SAMPLE_CONFIG: CampaignConfig = {
           Comparator: '0',
           CommsRouting: 'MANAGE_BOOKING',
         },
+        // R rule — AND group: same Type+Priority+Name as "In a participating region".
+        // Both must match for the routing to fire (demonstrates the AND-group
+        // mention in the rule sentence).
+        {
+          Type: 'R',
+          Name: 'In a participating region',
+          Description: 'AND group: the person must also have a care home flag set.',
+          Priority: 1000,
+          AttributeLevel: 'PERSON',
+          AttributeName: 'CARE_HOME_FLAG',
+          Operator: '=',
+          Comparator: 'Y',
+          CommsRouting: 'INFO_TEXT',
+        },
         // X rule — no CommsRouting on purpose to show validation panel
         {
           Type: 'X',
