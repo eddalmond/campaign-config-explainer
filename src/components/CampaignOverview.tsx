@@ -1,7 +1,10 @@
+import { useMemo } from 'react';
 import type { CampaignConfig } from '../types/campaign';
+import { useAuthor } from '../hooks/AuthorContext';
 
 interface Props {
   config: CampaignConfig;
+  currentIterationIndex: number;
   onIterationSelect: (index: number) => void;
 }
 
@@ -17,15 +20,57 @@ function descFreq(f: string | undefined): string {
   return map[f || ''] || f || '—';
 }
 
-export default function CampaignOverview({ config, onIterationSelect }: Props) {
-  const sortedIterations = [...config.Iterations].sort((a, b) => 
-    (a.IterationDate || '').localeCompare(b.IterationDate || '')
+export default function CampaignOverview({ config, currentIterationIndex, onIterationSelect }: Props) {
+  const { viewMode, duplicateIteration, deleteIteration } = useAuthor();
+
+  // Map the displayed index (sorted by IterationDate) back to the iteration ID
+  // so we can call duplicateIteration/deleteIteration by ID.
+  const sortedIterations = useMemo(
+    () => [...config.Iterations].sort((a, b) =>
+      (a.IterationDate || '').localeCompare(b.IterationDate || '')
+    ),
+    [config.Iterations]
   );
+
+  const currentIteration = sortedIterations[currentIterationIndex];
+  const isOnlyIteration = config.Iterations.length <= 1;
+
+  const handleDuplicate = () => {
+    if (!currentIteration) return;
+    const newId = duplicateIteration(currentIteration.ID, 0);
+    if (newId) {
+      // Find the new iteration in the sorted list and select it.
+      // Note: this runs synchronously after the state update, so we re-sort.
+      // We use a microtask so the React state has flushed.
+      queueMicrotask(() => {
+        const idx = sortedIterations.findIndex(it => it.ID === currentIteration.ID);
+        // The new one will be appended at the end of the un-sorted list, then
+        // re-sorted. Easier: just count from the new total length - 1.
+        // We rely on the App-level re-render to give us a fresh sortedIterations
+        // — but for the immediate UI feedback we do a best-effort select by name.
+        if (idx >= 0) onIterationSelect(idx);
+      });
+    }
+  };
+
+  const handleDelete = () => {
+    if (!currentIteration) return;
+    if (isOnlyIteration) {
+      alert('Cannot delete the only remaining iteration. Duplicate it first if you want to start over.');
+      return;
+    }
+    if (confirm(`Delete iteration "${currentIteration.Name || currentIteration.ID}"? This cannot be undone (but you can use Reset to recover the loaded version).`)) {
+      deleteIteration(currentIteration.ID);
+      // Snap the picker to a safe index after deletion.
+      const newCount = config.Iterations.length - 1;
+      if (currentIterationIndex >= newCount) onIterationSelect(Math.max(0, newCount - 1));
+    }
+  };
 
   return (
     <div className="card">
       <h2 className="section-heading mt-0">Campaign Overview</h2>
-      
+
       <div className="data-grid mb-6">
         <div className="data-item data-item--blue">
           <div className="data-item__label">ID</div>
@@ -62,17 +107,43 @@ export default function CampaignOverview({ config, onIterationSelect }: Props) {
       </div>
 
       <div className="card form-group mb-0">
-        <label className="form-label">Select Iteration</label>
-        <select
-          onChange={(e) => onIterationSelect(parseInt(e.target.value))}
-          className="select-input"
-        >
-          {sortedIterations.map((it, i) => (
-            <option key={i} value={i}>
-              {it.Name || it.ID} — {fmtDate(it.IterationDate)} ({it.Type})
-            </option>
-          ))}
-        </select>
+        <label className="form-label" htmlFor="iteration-picker">Select Iteration</label>
+        <div className="iteration-picker-row">
+          <select
+            id="iteration-picker"
+            value={currentIterationIndex}
+            onChange={(e) => onIterationSelect(parseInt(e.target.value))}
+            className="select-input"
+          >
+            {sortedIterations.map((it, i) => (
+              <option key={it.ID} value={i}>
+                {it.Name || it.ID} — {fmtDate(it.IterationDate)} ({it.Type})
+              </option>
+            ))}
+          </select>
+          {viewMode === 'author' && (
+            <div className="iteration-picker-actions">
+              <button
+                type="button"
+                className="btn btn--secondary"
+                onClick={handleDuplicate}
+                disabled={!currentIteration}
+                title="Duplicate the selected iteration as a new one. Bumps IterationNumber, resets Version, sets IterationDate to today."
+              >
+                Duplicate
+              </button>
+              <button
+                type="button"
+                className="btn btn--danger-text"
+                onClick={handleDelete}
+                disabled={!currentIteration || isOnlyIteration}
+                title={isOnlyIteration ? 'Cannot delete the only remaining iteration' : 'Delete the selected iteration'}
+              >
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
