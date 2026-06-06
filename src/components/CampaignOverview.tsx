@@ -156,6 +156,18 @@ export default function CampaignOverview({ config, currentIterationIndex, onIter
             </div>
           )}
         </div>
+        {config.Iterations.length >= 2 && (
+          <div style={{ marginTop: '0.75rem' }}>
+            <button
+              type="button"
+              className="btn btn--secondary btn--small"
+              onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:edit-section', { detail: { section: 'compare-iterations' } }))}
+              title="See a side-by-side diff of all the changes between two iterations (cohorts, rules, actions)"
+            >
+              Compare iterations…
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
