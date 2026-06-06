@@ -31,6 +31,7 @@ export default function ActionMappingEditor({ keyName, mapping, onClose, onSave,
   });
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDraftKey(keyName ?? '');
     setDraft(mapping ? structuredClone(mapping) : {
       ExternalRoutingCode: '',

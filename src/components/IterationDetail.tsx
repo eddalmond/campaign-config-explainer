@@ -379,9 +379,9 @@ function groupByPriority(rules: Rule[]): Record<number, Rule[]> {
   return groups;
 }
 
-function buildEligibilityDiagram(filterRules: Rule[], suppressionRules: Rule[], _cohorts: Cohort[]): string {
+function buildEligibilityDiagram(filterRules: Rule[], suppressionRules: Rule[], cohorts: Cohort[]): string {
   let d = 'flowchart TD\n';
-  d += '  START([" For each Cohort by priority"])\n';
+  d += `  START([" For each of ${cohorts.length} cohort${cohorts.length === 1 ? '' : 's'} by priority"])\n`;
   d += '  BASE{{"Base Eligibility Check\\nIs person in cohort?"}}\n';
   d += '  START --> BASE\n';
   d += '  BASE -- "No" --> NOT_ELIG_BASE["❌ not_eligible\\nnot in cohort"]\n';

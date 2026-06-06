@@ -52,6 +52,13 @@ export interface AuthorState {
   update: (fn: (c: CampaignConfig) => CampaignConfig) => void;
   /** Apply a function to a specific iteration. */
   updateIteration: (iterationId: string, fn: (it: Iteration) => Iteration) => void;
+  /**
+   * Deep-clone an iteration and append the copy. Returns the new iteration's
+   * ID, or null if the source wasn't found.
+   */
+  duplicateIteration: (sourceId: string, dateOffsetDays?: number) => string | null;
+  /** Delete an iteration entirely. */
+  deleteIteration: (iterationId: string) => void;
   reset: () => void;
   /** True if working copy differs from the loaded snapshot. */
   isDirty: boolean;
@@ -61,6 +68,29 @@ export interface AuthorState {
   copyJson: () => Promise<boolean>;
   /** True after the first persistence has run (avoid hydration overwrite). */
   hydrated: boolean;
+}
+
+function newUuid(): string {
+  // crypto.randomUUID is widely available; fall back to a v4-ish string for
+  // ancient browsers. We're inside a browser app so this is fine.
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+function defaultDate(offsetDays: number): string {
+  // YYYYMMDD — matches the format used elsewhere in the config
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}${m}${day}`;
 }
 
 function deepEqual(a: unknown, b: unknown): boolean {
@@ -141,10 +171,49 @@ export function useAuthorState(loaded: CampaignConfig | null): AuthorState {
     [],
   );
 
+  /**
+   * Duplicate an iteration and append the copy to the campaign.
+   * - New UUID
+   * - IterationNumber bumped to max+1
+   * - IterationDate = today (YYYYMMDD) by default, or +N days from source if requested
+   * - Name suffixed with "(copy)"
+   * - Version reset to 1
+   * Returns the new iteration's ID.
+   */
+  const duplicateIteration = useCallback((sourceId: string, dateOffsetDays = 0): string | null => {
+    let newId: string | null = null;
+    setWorking(prev => {
+      if (!prev) return prev;
+      const source = prev.Iterations.find(it => it.ID === sourceId);
+      if (!source) return prev;
+      const copy = structuredClone(source);
+      copy.ID = newUuid();
+      copy.Name = `${source.Name || source.ID} (copy)`;
+      copy.Version = 1;
+      copy.IterationNumber = Math.max(0, ...prev.Iterations.map(i => i.IterationNumber || 0)) + 1;
+      copy.IterationDate = defaultDate(dateOffsetDays);
+      const next = structuredClone(prev);
+      next.Iterations.push(copy);
+      newId = copy.ID;
+      return next;
+    });
+    return newId;
+  }, []);
+
   const reset = useCallback(() => {
     if (!loadedRef.current) return;
     setWorking(loadedRef.current);
     try { window.localStorage.removeItem(STORAGE_PREFIX + loadedRef.current.ID); } catch { /* ignore */ }
+  }, []);
+
+  const deleteIteration = useCallback((iterationId: string) => {
+    setWorking(prev => {
+      if (!prev) return prev;
+      if (prev.Iterations.length <= 1) return prev; // keep at least one
+      const next = structuredClone(prev);
+      next.Iterations = next.Iterations.filter(it => it.ID !== iterationId);
+      return next;
+    });
   }, []);
 
   const downloadJson = useCallback(() => {
@@ -183,6 +252,8 @@ export function useAuthorState(loaded: CampaignConfig | null): AuthorState {
     setViewMode,
     update,
     updateIteration,
+    duplicateIteration,
+    deleteIteration,
     reset,
     isDirty,
     downloadJson,

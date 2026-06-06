@@ -116,6 +116,7 @@ function App() {
             <>
               <CampaignOverview
                 config={displayConfig}
+                currentIterationIndex={currentIterationIndex}
                 onIterationSelect={setCurrentIterationIndex}
               />
               {sortedIterations[currentIterationIndex] && (

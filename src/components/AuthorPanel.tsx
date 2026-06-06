@@ -136,6 +136,25 @@ export default function AuthorPanel({
     window.dispatchEvent(new CustomEvent('campaign-explainer:open-new-rule'));
   };
 
+  const { duplicateIteration, deleteIteration, working } = useAuthor();
+  const isOnlyIteration = (working?.Iterations.length ?? 0) <= 1;
+
+  const handleDuplicate = () => {
+    const newId = duplicateIteration(iteration.ID, 0);
+    if (newId) {
+      window.dispatchEvent(new CustomEvent('campaign-explainer:select-iteration', { detail: { id: newId } }));
+    }
+  };
+  const handleDelete = () => {
+    if (isOnlyIteration) {
+      alert('Cannot delete the only remaining iteration. Add a new one first if you want to start over.');
+      return;
+    }
+    if (confirm(`Delete iteration "${iteration.Name || iteration.ID}"? This cannot be undone (but you can use Reset to recover the loaded version).`)) {
+      deleteIteration(iteration.ID);
+    }
+  };
+
   return (
     <>
       <div className="author-actions">
@@ -143,6 +162,24 @@ export default function AuthorPanel({
         <button type="button" className="btn btn--primary" onClick={() => setLocal({ kind: 'cohort-new' })}>+ Add Cohort</button>
         <button type="button" className="btn btn--primary" onClick={() => setLocal({ kind: 'action-new' })}>+ Add Action</button>
         <button type="button" className="btn btn--secondary" onClick={() => setLocal({ kind: 'metadata' })}>Edit Iteration Settings…</button>
+        <div className="author-actions__spacer" />
+        <button
+          type="button"
+          className="btn btn--secondary"
+          onClick={handleDuplicate}
+          title="Deep-clone this iteration as a new one. IterationNumber is bumped, IterationDate is set to today, ID and Version are reset."
+        >
+          Duplicate iteration
+        </button>
+        <button
+          type="button"
+          className="btn btn--danger-text"
+          onClick={handleDelete}
+          disabled={isOnlyIteration}
+          title={isOnlyIteration ? 'Cannot delete the only remaining iteration' : 'Delete this iteration'}
+        >
+          Delete iteration
+        </button>
       </div>
 
       {/* Rule editor (state owned by parent) */}
