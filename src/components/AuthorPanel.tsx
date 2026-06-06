@@ -9,10 +9,13 @@ import CampaignMetadataEditor from './CampaignMetadataEditor';
 import JsonPreview from './JsonPreview';
 import { CohortsOverviewDrawer, RulesOverviewDrawer, ActionsOverviewDrawer } from './OverviewDrawers';
 import Drawer from './Drawer';
+import CompareIterationsDrawer from './CompareIterationsDrawer';
 import AdvancedFields from './AdvancedFields';
 
 interface Props {
   iteration: Iteration;
+  /** All iterations in the working copy — used by CompareIterationsDrawer. */
+  iterations?: Iteration[];
   /** Rule editor state, owned by the parent so the read-only tables can trigger it. */
   editingRule: { index: number } | { new: true } | null;
   onCloseRuleEditor: () => void;
@@ -30,10 +33,12 @@ type LocalEditor =
   | { kind: 'action-edit'; key: string }
   | { kind: 'cohorts-overview' }
   | { kind: 'rules-overview' }
-  | { kind: 'actions-overview' };
+  | { kind: 'actions-overview' }
+  | { kind: 'compare-iterations' };
 
 export default function AuthorPanel({
   iteration,
+  iterations,
   editingRule,
   onCloseRuleEditor,
   onSaveRule,
@@ -72,6 +77,9 @@ export default function AuthorPanel({
           break;
         case 'json':
           setLocal({ kind: 'json-preview' });
+          break;
+        case 'compare-iterations':
+          setLocal({ kind: 'compare-iterations' });
           break;
       }
     };
@@ -339,6 +347,15 @@ export default function AuthorPanel({
           onClose={closeLocal}
           onAdd={() => setLocal({ kind: 'action-new' })}
           onEdit={(key) => setLocal({ kind: 'action-edit', key })}
+        />
+      )}
+
+      {/* Compare iterations side-by-side */}
+      {local?.kind === 'compare-iterations' && iterations && (
+        <CompareIterationsDrawer
+          iterations={iterations}
+          defaultFromId={iteration.ID}
+          onClose={closeLocal}
         />
       )}
 

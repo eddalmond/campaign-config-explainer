@@ -22,7 +22,7 @@ type TabId = 'eligibility' | 'action' | 'actions-mapper' | 'rules-mapper';
 
 export default function IterationDetail({ iteration, actionsMapper, campaignDates }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>('eligibility');
-  const { viewMode, updateIteration } = useAuthor();
+  const { viewMode, updateIteration, working } = useAuthor();
 
   // The author-mode flow manages its own editors via AuthorPanel — it ignores
   // the current activeTab and shows the actions inline.
@@ -394,6 +394,7 @@ export default function IterationDetail({ iteration, actionsMapper, campaignDate
       {authorMode && (
         <AuthorPanel
           iteration={iteration}
+          iterations={working?.Iterations}
           editingRule={editingRule}
           onCloseRuleEditor={closeEditor}
           onSaveRule={saveRule}
