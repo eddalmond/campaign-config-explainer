@@ -461,3 +461,204 @@ details > summary {
   font-size: var(--font-size-sm);
   margin-top: 3rem;
 }
+
+/* Header layout helpers */
+.app-header__spacer {
+  flex: 1;
+}
+
+/* Theme toggle */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: transparent;
+  color: var(--white);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--white);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.theme-toggle svg {
+  display: block;
+}
+
+/* Smooth theme transitions */
+body,
+.card,
+.app-header,
+.app-footer,
+.file-input,
+.text-area,
+.select-input,
+.tab-btn,
+.tab-content,
+.mermaid-container,
+.data-item,
+.code-inline,
+.tabs-nav,
+.table-container {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Dark theme overrides */
+[data-theme="dark"] {
+  --primary: #4d9bff;
+  --primary-dark: #1d6fe0;
+  --primary-light: #80bfff;
+
+  --danger: #ff6b6b;
+  --success: #3ddc84;
+  --success-dark: #2cb070;
+  --success-light: #0f2a1c;
+  --warning: #ffb05b;
+  --accent: #ffd966;
+
+  --white: #0f1419;
+  --grey-5: #0b1116;
+  --grey-4: #161d24;
+  --grey-3: #232c35;
+  --grey-2: #8a98a4;
+  --grey-1: #b8c2cc;
+  --black: #e6edf3;
+
+  --status-actionable: #3ddc84;
+  --status-actionable-bg: #0f2a1c;
+  --status-not-eligible: #ff6b6b;
+  --status-not-eligible-bg: #2a0f0f;
+  --status-not-actionable: #ffb05b;
+  --status-not-actionable-bg: #2a1a0a;
+
+  --status-x: #d77baf;
+  --status-x-bg: #2a1224;
+  --status-y: #d4b072;
+  --status-y-bg: #2a2010;
+}
+
+[data-theme="dark"] body {
+  background-color: var(--grey-5);
+  color: var(--black);
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4 {
+  color: var(--black);
+}
+
+[data-theme="dark"] a {
+  color: var(--primary);
+}
+[data-theme="dark"] a:hover {
+  color: var(--primary-light);
+}
+
+[data-theme="dark"] .card {
+  background-color: #131a21;
+  border-color: var(--grey-3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .file-input,
+[data-theme="dark"] .text-area,
+[data-theme="dark"] .select-input {
+  background-color: var(--grey-5);
+  color: var(--black);
+  border-color: var(--grey-3);
+}
+
+[data-theme="dark"] .text-area::placeholder,
+[data-theme="dark"] .select-input option {
+  color: var(--grey-2);
+}
+
+[data-theme="dark"] details > summary {
+  color: var(--primary);
+}
+
+[data-theme="dark"] .message-error {
+  color: var(--danger);
+}
+[data-theme="dark"] .message-success {
+  color: var(--success);
+}
+
+[data-theme="dark"] .data-item {
+  background-color: var(--grey-5);
+}
+
+[data-theme="dark"] .data-item__label {
+  color: var(--grey-1);
+}
+
+[data-theme="dark"] .data-table th {
+  background-color: #1c2731;
+  color: var(--black);
+}
+[data-theme="dark"] .data-table td {
+  border-bottom-color: var(--grey-3);
+}
+[data-theme="dark"] .data-table tr:hover td {
+  background-color: var(--grey-4);
+}
+
+[data-theme="dark"] .section-heading {
+  border-bottom-color: var(--primary);
+}
+
+[data-theme="dark"] .code-inline {
+  background-color: var(--grey-4);
+  color: var(--black);
+}
+
+[data-theme="dark"] .tabs-nav {
+  border-bottom-color: var(--primary);
+}
+[data-theme="dark"] .tab-btn {
+  background-color: var(--grey-4);
+  color: var(--grey-1);
+  border-color: var(--grey-3);
+}
+[data-theme="dark"] .tab-btn:hover {
+  background-color: var(--grey-5);
+}
+[data-theme="dark"] .tab-btn.active {
+  background-color: #131a21;
+  color: var(--primary);
+  border-color: var(--primary);
+  border-bottom-color: #131a21;
+}
+[data-theme="dark"] .tab-content {
+  background-color: #131a21;
+  border-color: var(--grey-3);
+}
+
+[data-theme="dark"] .mermaid-container {
+  background-color: #131a21;
+  border-color: var(--grey-3);
+}
+
+[data-theme="dark"] .btn--primary:disabled {
+  background-color: var(--grey-3);
+  color: var(--grey-2);
+}
+
+/* Mermaid diagram in dark mode: invert text/edges slightly to stay readable */
+[data-theme="dark"] .mermaid-diagram svg {
+  filter: invert(0.92) hue-rotate(180deg);
+}

@@ -1,9 +1,12 @@
 import { useState, useCallback } from 'react';
 import type { CampaignConfig } from './types/campaign';
+import { useTheme } from './hooks/useTheme';
 import CampaignOverview from './components/CampaignOverview';
 import IterationDetail from './components/IterationDetail';
+import ThemeToggle from './components/ThemeToggle';
 
 function App() {
+  const { theme, toggleTheme } = useTheme();
   const [campaignConfig, setCampaignConfig] = useState<CampaignConfig | null>(null);
   const [currentIterationIndex, setCurrentIterationIndex] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +55,8 @@ function App() {
       <header className="app-header">
         <div className="app-header__container max-w-container">
           <a href="/" className="app-header__service-name">Campaign Config Explainer</a>
+          <div className="app-header__spacer" />
+          <ThemeToggle theme={theme} onToggle={toggleTheme} />
         </div>
       </header>
 
