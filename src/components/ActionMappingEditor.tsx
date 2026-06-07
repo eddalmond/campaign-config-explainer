@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { ActionMapping } from '../types/campaign';
 import { KNOWN_ACTION_TYPES } from '../data/catalog';
-import { Field, Select, TextInput, Textarea } from './FormControls';
+import { Field, Select, TextInput } from './FormControls';
+import MarkdownTextarea from './MarkdownTextarea';
 import Drawer from './Drawer';
 
 interface Props {
@@ -98,10 +99,11 @@ export default function ActionMappingEditor({ keyName, mapping, onClose, onSave,
           )}
         </Field>
         <Field label="Action Description" hint="Markdown supported. Use template tokens like [[TARGET.RSV.LAST_SUCCESSFUL_DATE:DATE(...)]] for substitutions.">
-          <Textarea
+          <MarkdownTextarea
             value={draft.ActionDescription ?? ''}
             onChange={v => update({ ActionDescription: v || undefined })}
             rows={5}
+            placeholder="e.g. ### Getting the vaccine&#10;&#10;We believe you're eligible. [Book now](https://example.org/book)"
           />
         </Field>
         <Field label="URL Link" hint="Optional. Leave blank for pure text actions.">

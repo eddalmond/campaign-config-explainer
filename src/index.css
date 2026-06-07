@@ -2061,3 +2061,137 @@ body,
   border-color: var(--grey-3);
   color: #e6edf3;
 }
+
+/* MarkdownTextarea */
+.md-textarea {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.md-textarea__tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+.md-textarea__tabs .tab-btn {
+  font-size: var(--font-size-sm);
+  padding: 0.2rem 0.7rem;
+}
+.md-textarea__token-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 999px;
+  background-color: var(--grey-4);
+  color: var(--grey-1);
+  vertical-align: middle;
+}
+.md-textarea__preview {
+  background-color: var(--grey-5);
+  border: 1px solid var(--grey-3);
+  border-radius: 4px;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #1f2933;
+  overflow-wrap: break-word;
+}
+.md-textarea__preview > *:first-child { margin-top: 0; }
+.md-textarea__preview > *:last-child { margin-bottom: 0; }
+.md-textarea__preview h1,
+.md-textarea__preview h2,
+.md-textarea__preview h3,
+.md-textarea__preview h4 {
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0.6rem 0 0.4rem;
+}
+.md-textarea__preview h1 { font-size: 1.3rem; }
+.md-textarea__preview h2 { font-size: 1.15rem; }
+.md-textarea__preview h3 { font-size: 1rem; }
+.md-textarea__preview h4 { font-size: 0.9rem; }
+.md-textarea__preview p { margin: 0.4rem 0; }
+.md-textarea__preview ul,
+.md-textarea__preview ol { margin: 0.4rem 0 0.4rem 1.5rem; padding: 0; }
+.md-textarea__preview li { margin: 0.15rem 0; }
+.md-textarea__preview blockquote {
+  margin: 0.4rem 0;
+  padding: 0.25rem 0.75rem;
+  border-left: 3px solid var(--grey-3);
+  color: var(--grey-1);
+}
+.md-textarea__preview code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Menlo', monospace;
+  font-size: 0.85em;
+  background-color: rgba(0, 0, 0, 0.06);
+  padding: 0.05rem 0.25rem;
+  border-radius: 3px;
+}
+.md-textarea__preview pre {
+  background-color: rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  overflow-x: auto;
+}
+.md-textarea__preview pre code {
+  background-color: transparent;
+  padding: 0;
+}
+.md-textarea__preview a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.md-textarea__empty {
+  font-style: italic;
+  color: var(--grey-1);
+  text-align: center;
+  padding: 0.75rem 0;
+}
+
+/* Template tokens inside the preview — render as inline chips so the
+   user can see "this is a token, not raw text" at a glance. */
+.md-textarea__token {
+  display: inline-block;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Menlo', monospace;
+  font-size: 0.78em;
+  padding: 0.05rem 0.35rem;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  vertical-align: baseline;
+  white-space: nowrap;
+}
+.md-textarea__token--deploy {
+  background-color: #fff8db;
+  border-color: #f0d97a;
+  color: #876800;
+}
+.md-textarea__token--substitution {
+  background-color: #f1ebff;
+  border-color: #c4b5fd;
+  color: #5b21b6;
+}
+
+[data-theme="dark"] .md-textarea__preview {
+  background-color: var(--grey-4);
+  border-color: var(--grey-3);
+  color: #e6edf3;
+}
+[data-theme="dark"] .md-textarea__preview code {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .md-textarea__preview pre {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .md-textarea__token--deploy {
+  background-color: rgba(255, 217, 102, 0.12);
+  border-color: rgba(255, 217, 102, 0.4);
+  color: #ffd966;
+}
+[data-theme="dark"] .md-textarea__token--substitution {
+  background-color: rgba(196, 181, 253, 0.12);
+  border-color: rgba(196, 181, 253, 0.4);
+  color: #c4b5fd;
+}
