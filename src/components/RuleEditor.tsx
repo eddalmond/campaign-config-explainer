@@ -9,8 +9,9 @@ import {
 } from '../data/catalog';
 import { explainOperator, explainRule, type RuleGroupContext } from '../utils/explain';
 import { useRecentAttributes } from '../hooks/useRecentAttributes';
-import { Field, NumberInput, Select, TextInput, Textarea, MultiSelect, Checkbox } from './FormControls';
+import { Field, NumberInput, Select, TextInput, MultiSelect, Checkbox } from './FormControls';
 import Drawer from './Drawer';
+import MarkdownTextarea from './MarkdownTextarea';
 
 interface Props {
   iteration: Iteration;
@@ -233,11 +234,12 @@ export default function RuleEditor({ iteration, ruleIndex, onClose, onSave, onDe
           />
         </Field>
 
-        <Field label="Description" hint="User-facing text shown in some flows. May include template tokens like [[TARGET.RSV.LAST_SUCCESSFUL_DATE:DATE(%-d %B %Y)]].">
-          <Textarea
+        <Field label="Description" hint="User-facing text shown in some flows. Markdown supported. May include template tokens like [[TARGET.RSV.LAST_SUCCESSFUL_DATE:DATE(%-d %B %Y)]].">
+          <MarkdownTextarea
             value={draft.Description ?? ''}
             onChange={v => update({ Description: v || undefined })}
             rows={4}
+            placeholder="e.g. ### You've had your RSV vaccination&#10;&#10;We believe you were vaccinated on [[TARGET.RSV.LAST_SUCCESSFUL_DATE:DATE(%-d %B %Y)]]."
           />
         </Field>
 

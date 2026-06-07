@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Iteration } from '../types/campaign';
-import { Field, NumberInput, TextInput, Textarea, Checkbox } from './FormControls';
+import { Field, NumberInput, TextInput, Checkbox } from './FormControls';
+import MarkdownTextarea from './MarkdownTextarea';
 import Drawer from './Drawer';
 
 interface Props {
@@ -73,14 +74,26 @@ export default function IterationMetadataEditor({ iteration, onClose, onSave }: 
 
         <div className="form-section">
           <div className="form-section__title">Status Text</div>
-          <Field label="Actionable">
-            <Textarea value={statusText.Actionable ?? ''} onChange={v => update({ StatusText: { ...statusText, Actionable: v || undefined } })} rows={2} />
+          <Field label="Actionable" hint="Markdown supported. Use template tokens like [[TARGET.RSV.LAST_SUCCESSFUL_DATE:DATE(...)]] for substitutions.">
+            <MarkdownTextarea
+              value={statusText.Actionable ?? ''}
+              onChange={v => update({ StatusText: { ...statusText, Actionable: v || undefined } })}
+              rows={2}
+            />
           </Field>
-          <Field label="Not Actionable">
-            <Textarea value={statusText.NotActionable ?? ''} onChange={v => update({ StatusText: { ...statusText, NotActionable: v || undefined } })} rows={2} />
+          <Field label="Not Actionable" hint="Markdown supported. Use template tokens like [[TARGET.RSV.LAST_SUCCESSFUL_DATE:DATE(...)]] for substitutions.">
+            <MarkdownTextarea
+              value={statusText.NotActionable ?? ''}
+              onChange={v => update({ StatusText: { ...statusText, NotActionable: v || undefined } })}
+              rows={2}
+            />
           </Field>
-          <Field label="Not Eligible">
-            <Textarea value={statusText.NotEligible ?? ''} onChange={v => update({ StatusText: { ...statusText, NotEligible: v || undefined } })} rows={2} />
+          <Field label="Not Eligible" hint="Markdown supported. Use template tokens like [[TARGET.RSV.LAST_SUCCESSFUL_DATE:DATE(...)]] for substitutions.">
+            <MarkdownTextarea
+              value={statusText.NotEligible ?? ''}
+              onChange={v => update({ StatusText: { ...statusText, NotEligible: v || undefined } })}
+              rows={2}
+            />
           </Field>
           <Checkbox
             checked={!!draft.StatusText}
