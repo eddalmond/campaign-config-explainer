@@ -354,6 +354,13 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
               suppressionRules={suppressionRules}
               allRulesInOrder={iteration.IterationRules}
               onEditRule={authorMode ? openEditRule : undefined}
+              onUpdateRule={authorMode ? (originalIndex, patch) => {
+                updateIteration(iteration.ID, (it) => {
+                  const rules = [...(it.IterationRules || [])];
+                  rules[originalIndex] = { ...rules[originalIndex], ...patch };
+                  return { ...it, IterationRules: rules };
+                });
+              } : undefined}
             />
           )}
           {activeTab === 'action' && (
@@ -363,6 +370,13 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
               yRules={yRules}
               allRulesInOrder={iteration.IterationRules}
               onEditRule={authorMode ? openEditRule : undefined}
+              onUpdateRule={authorMode ? (originalIndex, patch) => {
+                updateIteration(iteration.ID, (it) => {
+                  const rules = [...(it.IterationRules || [])];
+                  rules[originalIndex] = { ...rules[originalIndex], ...patch };
+                  return { ...it, IterationRules: rules };
+                });
+              } : undefined}
             />
           )}
           {activeTab === 'actions-mapper' && (

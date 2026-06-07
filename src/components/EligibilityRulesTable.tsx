@@ -1,6 +1,10 @@
-import type { Rule } from '../types/campaign';
+import { useState } from 'react';
+import type { Rule, RuleType } from '../types/campaign';
 import { explainOperator, lookupAttribute, lookupOperator } from '../utils/explain';
 import { sortWithOriginalIndex } from '../utils/sortWithIndex';
+import InlineEditableCell from './InlineEditableCell';
+import RuleFilter from './RuleFilter';
+import { applyRuleFilter, type RuleFilterState } from '../utils/ruleFilter';
 
 interface Props {
   filterRules: Rule[];
@@ -8,11 +12,22 @@ interface Props {
   /** All rules in iteration order, needed to map sorted rows back to their original index. */
   allRulesInOrder?: Rule[];
   onEditRule?: (originalIndex: number) => void;
+  /**
+   * Inline-edit callback. When present, simple-value cells become
+   * click-to-edit; complex-value cells (CohortLabel, CommsRouting)
+   * still open the drawer via onEditRule.
+   */
+  onUpdateRule?: (originalIndex: number, patch: Partial<Rule>) => void;
 }
 
-export default function EligibilityRulesTable({ filterRules, suppressionRules, allRulesInOrder, onEditRule }: Props) {
+const EMPTY_FILTER: RuleFilterState = { types: [] };
+
+export default function EligibilityRulesTable({ filterRules, suppressionRules, allRulesInOrder, onEditRule, onUpdateRule }: Props) {
   const original = allRulesInOrder ?? [...filterRules, ...suppressionRules];
   const allRules = [...filterRules, ...suppressionRules].sort((a, b) => a.Type.localeCompare(b.Type) || a.Priority - b.Priority);
+  const [filter, setFilter] = useState<RuleFilterState>(EMPTY_FILTER);
+  const filteredRules = applyRuleFilter(allRules, filter);
+
   const sortedMap = sortWithOriginalIndex(
     original,
     (a, b) => a.Type.localeCompare(b.Type) || a.Priority - b.Priority,
@@ -27,24 +42,27 @@ export default function EligibilityRulesTable({ filterRules, suppressionRules, a
   }
 
   return (
-    <div className="table-container">
-      <table className="data-table">
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>Priority</th>
-                <th>Name</th>
-                <th>Attribute Level</th>
-                <th>Attribute Name</th>
-                <th>Operator</th>
-                <th>Comparator</th>
-                <th>Cohort Scope</th>
-                <th>RuleStop</th>
-                {onEditRule && <th></th>}
-              </tr>
-            </thead>
+    <div>
+      {onUpdateRule && <RuleFilter state={filter} onChange={setFilter} totalCount={allRules.length} filteredCount={filteredRules.length} />}
+
+      <div className="table-container">
+        <table className="data-table data-table--editable">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Priority</th>
+              <th>Name</th>
+              <th>Attribute Level</th>
+              <th>Attribute Name</th>
+              <th>Operator</th>
+              <th>Comparator</th>
+              <th>Cohort Scope</th>
+              <th>RuleStop</th>
+              {onEditRule && <th></th>}
+            </tr>
+          </thead>
           <tbody>
-            {allRules.map((r, i) => {
+            {filteredRules.map((r, i) => {
               const scope = r.CohortLabel
                 ? r.CohortLabel.split(',').map(l => <span key={l} className="code-inline" style={{marginRight: '4px'}}>{l.trim()}</span>)
                 : <em>all cohorts</em>;
@@ -53,47 +71,100 @@ export default function EligibilityRulesTable({ filterRules, suppressionRules, a
               const explanation = explainOperator(r);
               const isUnknownAttribute = r.AttributeName && !attr;
               const isUnknownOperator = r.Operator && !op;
+              const originalIndex = lookupOriginal(r);
+              const update = onUpdateRule ? (patch: Partial<Rule>) => onUpdateRule(originalIndex, patch) : undefined;
               return (
-                <tr key={`${r.Type}_${i}`} style={{cursor: onEditRule ? 'pointer' : 'default'}} onClick={onEditRule ? () => onEditRule(lookupOriginal(r)) : undefined}>
+                <tr key={`${r.Type}_${originalIndex}_${i}`} style={{cursor: onEditRule ? 'pointer' : 'default'}} onClick={onEditRule ? () => onEditRule(lookupOriginal(r)) : undefined}>
                   <td>
-                    <span className={`badge ${r.Type === 'F' ? 'bg-red' : 'bg-orange'}`}>
-                      {r.Type}
-                    </span>
+                    <InlineEditableCell<RuleType>
+                      value={r.Type}
+                      onSave={update ? (next) => update({ Type: next }) : undefined}
+                      renderDisplay={(v) => <span className={`badge ${v === 'F' ? 'bg-red' : 'bg-orange'}`}>{v}</span>}
+                      validate={(s) => ['F', 'S', 'R', 'X', 'Y'].includes(s) ? null : 'Must be F, S, R, X, or Y'}
+                    />
                   </td>
-                  <td>{r.Priority}</td>
                   <td>
-                    <strong>{r.Name}</strong>
+                    <InlineEditableCell<number>
+                      value={r.Priority}
+                      onSave={update ? (next) => update({ Priority: next }) : undefined}
+                      validate={(s) => {
+                        const n = Number(s);
+                        if (!Number.isFinite(n)) return 'Must be a number';
+                        return null;
+                      }}
+                      parse={(s) => Number(s)}
+                    />
+                  </td>
+                  <td>
+                    <InlineEditableCell<string>
+                      value={r.Name}
+                      onSave={update ? (next) => update({ Name: next.trim() }) : undefined}
+                      validate={(s) => s.trim() ? null : 'Name is required'}
+                    />
                     {r.Description && <div style={{fontSize: 'var(--font-size-xs)', color: 'var(--grey-1)'}}>{r.Description}</div>}
                   </td>
-                  <td>{r.AttributeLevel || '—'}</td>
                   <td>
-                    <code style={{
-                      fontSize: 'var(--font-size-xs)',
-                      textDecoration: isUnknownAttribute ? 'underline wavy var(--danger)' : 'none',
-                    }}>{r.AttributeName || '—'}</code>
+                    <InlineEditableCell<string>
+                      value={r.AttributeLevel ?? ''}
+                      onSave={update ? (next) => update({ AttributeLevel: (next || undefined) as Rule['AttributeLevel'] }) : undefined}
+                      renderDisplay={(v) => v || '—'}
+                    />
+                  </td>
+                  <td>
+                    <InlineEditableCell<string>
+                      value={r.AttributeName ?? ''}
+                      onSave={update ? (next) => update({ AttributeName: next || undefined }) : undefined}
+                      renderDisplay={(v) => v ? (
+                        <code style={{
+                          fontSize: 'var(--font-size-xs)',
+                          textDecoration: isUnknownAttribute ? 'underline wavy var(--danger)' : 'none',
+                        }}>{v}</code>
+                      ) : <span style={{ color: 'var(--grey-1)' }}>—</span>}
+                      muted
+                      title={isUnknownAttribute ? 'Attribute not in the catalog' : undefined}
+                    />
                     {r.AttributeTarget && <div style={{fontSize: 'var(--font-size-xs)', color: 'var(--grey-1)'}}>Target: {r.AttributeTarget}</div>}
                   </td>
                   <td>
-                    <code style={{
-                      fontSize: 'var(--font-size-xs)',
-                      textDecoration: isUnknownOperator ? 'underline wavy var(--danger)' : 'none',
-                    }}>{r.Operator || '—'}</code>
+                    <InlineEditableCell<string>
+                      value={r.Operator ?? ''}
+                      onSave={update ? (next) => update({ Operator: next || undefined }) : undefined}
+                      renderDisplay={(v) => v ? (
+                        <code style={{
+                          fontSize: 'var(--font-size-xs)',
+                          textDecoration: isUnknownOperator ? 'underline wavy var(--danger)' : 'none',
+                        }}>{v}</code>
+                      ) : <span style={{ color: 'var(--grey-1)' }}>—</span>}
+                      muted
+                      title={isUnknownOperator ? 'Operator not in the catalog' : undefined}
+                    />
                   </td>
                   <td>
-                    <code style={{fontSize: 'var(--font-size-xs)'}}>{r.Comparator || '—'}</code>
+                    <InlineEditableCell<string>
+                      value={r.Comparator ?? ''}
+                      onSave={update ? (next) => update({ Comparator: next || undefined }) : undefined}
+                      renderDisplay={(v) => v ? <code style={{fontSize: 'var(--font-size-xs)'}}>{v}</code> : <span style={{ color: 'var(--grey-1)' }}>—</span>}
+                      muted
+                    />
                     {r.Operator && r.Comparator && (
                       <div className="rule-explanation">{explanation}</div>
                     )}
                   </td>
                   <td>{scope}</td>
-                  <td>{r.RuleStop === true || r.RuleStop === 'Y' ? '⛔ Yes' : '—'}</td>
+                  <td>
+                    <InlineEditableCell<boolean>
+                      value={r.RuleStop === true || r.RuleStop === 'Y'}
+                      onSave={update ? (next) => update({ RuleStop: next ? 'Y' : undefined }) : undefined}
+                      renderDisplay={(v) => v ? '⛔ Yes' : '—'}
+                    />
+                  </td>
                   {onEditRule && (
                     <td>
                       <button
                         type="button"
                         className="btn btn--small"
                         onClick={(e) => { e.stopPropagation(); onEditRule(lookupOriginal(r)); }}
-                        title="Edit this rule"
+                        title="Open the full rule editor (for CohortLabel, CommsRouting, Description, etc.)"
                       >
                         Edit
                       </button>
@@ -103,7 +174,8 @@ export default function EligibilityRulesTable({ filterRules, suppressionRules, a
               );
             })}
           </tbody>
-      </table>
+        </table>
+      </div>
     </div>
   );
 }

@@ -2195,3 +2195,188 @@ body,
   border-color: rgba(196, 181, 253, 0.4);
   color: #c4b5fd;
 }
+
+/* InlineEditableCell — used in the rule tables for bulk editing. */
+.inline-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+  min-height: 1.5rem;
+  font: inherit;
+  color: inherit;
+}
+.inline-cell--readonly {
+  cursor: default;
+}
+.inline-cell--readonly code,
+.inline-cell--read-only code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Menlo', monospace;
+  font-size: 0.85em;
+  background-color: transparent;
+  padding: 0;
+  color: inherit;
+}
+.inline-cell--read-only {
+  background: transparent;
+  border: 1px dashed transparent;
+  border-radius: 3px;
+  padding: 0.15rem 0.35rem;
+  cursor: text;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+}
+.inline-cell--read-only:hover {
+  border-color: var(--grey-3);
+  background-color: var(--grey-5);
+}
+.inline-cell--read-only:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+.inline-cell--muted {
+  color: var(--grey-1);
+}
+.inline-cell--editing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+}
+.inline-cell__input {
+  flex: 1 1 auto;
+  min-width: 4rem;
+  font: inherit;
+  color: inherit;
+  background: white;
+  border: 1px solid var(--primary);
+  border-radius: 3px;
+  padding: 0.15rem 0.4rem;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 94, 184, 0.15);
+}
+.inline-cell--error .inline-cell__input {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px rgba(216, 30, 5, 0.15);
+}
+.inline-cell__error {
+  font-size: 0.75rem;
+  color: var(--danger);
+  font-weight: 600;
+}
+.inline-cell__error-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: var(--danger);
+  flex: 0 0 0.5rem;
+}
+
+/* Editable table styling — make the cell border visible on hover so
+   the user knows which cells are clickable. */
+.data-table--editable td {
+  vertical-align: middle;
+}
+.data-table--editable tr:hover td {
+  background-color: rgba(0, 94, 184, 0.03);
+}
+[data-theme="dark"] .data-table--editable tr:hover td {
+  background-color: rgba(56, 139, 253, 0.06);
+}
+
+/* Rule filter bar */
+.rule-filter {
+  background-color: var(--grey-5);
+  border: 1px solid var(--grey-3);
+  border-radius: 4px;
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.rule-filter__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.rule-filter__label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--grey-1);
+}
+.rule-filter__label--spaced {
+  margin-left: 0.5rem;
+}
+.rule-filter__chips {
+  display: inline-flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+.rule-filter__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: transparent;
+  border: 1px solid var(--grey-3);
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  color: var(--grey-1);
+  transition: background-color 0.1s, border-color 0.1s;
+}
+.rule-filter__chip:hover {
+  background-color: var(--grey-4);
+  border-color: var(--grey-2);
+}
+.rule-filter__chip--active {
+  background-color: #ddf4ff;
+  border-color: #b6e3ff;
+  color: #0969da;
+  font-weight: 600;
+}
+.rule-filter__chip-label {
+  font-size: 0.75rem;
+}
+.rule-filter__number {
+  width: 5rem;
+  padding: 0.2rem 0.4rem;
+}
+.rule-filter__dash {
+  color: var(--grey-1);
+}
+.rule-filter__text {
+  flex: 1 1 12rem;
+  min-width: 12rem;
+  padding: 0.2rem 0.4rem;
+}
+.rule-filter__count {
+  font-size: var(--font-size-sm);
+  color: var(--grey-1);
+  margin-left: auto;
+}
+
+[data-theme="dark"] .rule-filter {
+  background-color: var(--grey-4);
+  border-color: var(--grey-3);
+}
+[data-theme="dark"] .rule-filter__chip--active {
+  background-color: rgba(56, 139, 253, 0.15);
+  border-color: rgba(56, 139, 253, 0.4);
+  color: #58a6ff;
+}
+[data-theme="dark"] .inline-cell--read-only:hover {
+  background-color: var(--grey-5);
+}
+[data-theme="dark"] .inline-cell__input {
+  background-color: var(--grey-5);
+  color: #e6edf3;
+}
