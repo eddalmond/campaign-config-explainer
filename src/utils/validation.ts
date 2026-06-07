@@ -1,4 +1,4 @@
-import type { Iteration, Rule, ActionMapping } from '../types/campaign';
+import type { Iteration, Rule, Cohort, ActionMapping } from '../types/campaign';
 import { getAttribute, getOperator, KNOWN_ACTION_TYPES } from '../data/catalog';
 import { findTemplateTokens } from './templates';
 
@@ -365,6 +365,56 @@ function findIterationLevelIssues(iteration: Iteration): ValidationIssue[] {
     }
   }
 
+  // A8: INVALID_GUID — the iteration's ID should be a UUID. The guide
+  // says: "A unique ID (GUID) is needed for both the Campaign and for
+  // each Iteration." Most engines accept non-UUIDs in some flows, so
+  // this is a warning, not an error.
+  if (iteration.ID && !isUuid(iteration.ID)) {
+    issues.push({
+      severity: 'warning',
+      code: 'INVALID_GUID',
+      message: `Iteration ID "${iteration.ID}" is not a valid UUID. The guide recommends GUIDs (e.g. via https://guidgenerator.com/) for both the Campaign ID and each Iteration ID.`,
+    });
+  }
+
+  // B5: VIRTUAL_COHORT_NAMING — Virtual:'Y' but name doesn't start with
+  // 'virtual_'. The guide recommends naming virtual cohorts clearly
+  // (e.g. virtual_my_cohort_name) to prevent confusion if a real cohort
+  // with the same name is later created.
+  for (const c of cohorts) {
+    if (c.Virtual === 'Y' && !/^virtual[_-]/i.test(c.CohortLabel)) {
+      issues.push({
+        severity: 'info',
+        code: 'VIRTUAL_COHORT_NAMING',
+        message: `Virtual cohort "${c.CohortLabel}" doesn't follow the virtual_ naming convention. The guide recommends names like "virtual_my_cohort" so a future real cohort with the same name doesn't accidentally override the virtual one.`,
+        cohortLabel: c.CohortLabel,
+      });
+    }
+  }
+
+  // B6: COHORT_VIRTUAL_NAME_CONFLICT — same CohortLabel appears as
+  // both virtual (Virtual:'Y') and non-virtual in the same iteration.
+  // Per the guide: "If you include the name of a 'real' cohort, but
+  // mark it as virtual, this will override the real cohort and treat
+  // it as virtual."
+  const byLabel = new Map<string, { virtual: Cohort[]; real: Cohort[] }>();
+  for (const c of cohorts) {
+    const entry = byLabel.get(c.CohortLabel) ?? { virtual: [], real: [] };
+    if (c.Virtual === 'Y') entry.virtual.push(c);
+    else entry.real.push(c);
+    byLabel.set(c.CohortLabel, entry);
+  }
+  for (const [label, entry] of byLabel) {
+    if (entry.virtual.length > 0 && entry.real.length > 0) {
+      issues.push({
+        severity: 'error',
+        code: 'COHORT_VIRTUAL_NAME_CONFLICT',
+        message: `Cohort "${label}" appears as both a virtual cohort (Virtual:'Y') and a real cohort in the same iteration. The virtual one will override the real one. Rename one of them.`,
+        cohortLabel: label,
+      });
+    }
+  }
+
   // C7: IterationDate must fall within campaign StartDate/EndDate
   // (We don't have the campaign in this validator signature, so we just
   // sanity-check the format here; the campaign-level call wraps this.)
@@ -427,10 +477,21 @@ function findIterationLevelIssues(iteration: Iteration): ValidationIssue[] {
  * Cross-iteration check: a config may have multiple iterations. The full
  * validator signature takes an Iteration, but the wrapper at the call site
  * can additionally pass the parent campaign for context. We accept it
- * optionally and run iteration-date-in-campaign-range when present.
+ * optionally and run iteration-date-in-campaign-range + campaign-ID
+ * validation when present.
  */
-function findCampaignLevelIssues(iteration: Iteration, campaign: { StartDate?: string; EndDate?: string } | undefined): ValidationIssue[] {
+function findCampaignLevelIssues(iteration: Iteration, campaign: CampaignLike | undefined): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
+
+  // A8: INVALID_GUID — Campaign ID should be a UUID.
+  if (campaign?.ID && !isUuid(campaign.ID)) {
+    issues.push({
+      severity: 'warning',
+      code: 'INVALID_GUID',
+      message: `Campaign ID "${campaign.ID}" is not a valid UUID. The guide recommends GUIDs (e.g. via https://guidgenerator.com/) for the Campaign ID and each Iteration ID.`,
+    });
+  }
+
   if (!campaign || !iteration.IterationDate) return issues;
   const d = iteration.IterationDate;
   if (/^<<[^>]+>>$/.test(d)) return issues; // template token — skip
@@ -457,7 +518,19 @@ function isLikelyUrl(s: string): boolean {
   return /^(https?:\/\/|\/|mailto:|[a-z]+:\/\/)/i.test(s);
 }
 
-export function validateIteration(iteration: Iteration, campaign?: { StartDate?: string; EndDate?: string }): ValidationIssue[] {
+/** A loose campaign shape — the validator only reads a few fields. */
+type CampaignLike = {
+  ID?: string;
+  StartDate?: string;
+  EndDate?: string;
+};
+
+/** Loose UUID check (RFC 4122). Accepts any version. */
+function isUuid(s: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+}
+
+export function validateIteration(iteration: Iteration, campaign?: CampaignLike): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const rules = iteration.IterationRules || [];
 
