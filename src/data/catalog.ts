@@ -45,6 +45,27 @@ export interface OperatorDef {
 // Attribute catalog
 // ---------------------------------------------------------------------------
 
+/**
+ * The set of valid target (vaccine / condition) codes. Used to validate
+ * rule.AttributeTarget when level === 'TARGET'. The dropdown in RuleEditor
+ * reads from this too.
+ *
+ * The DDB lineage doc (docs/domain-conventions.md) lists these as the
+ * targets that vims.elid_target_conditions_attributes is built for.
+ */
+export const KNOWN_TARGETS: readonly string[] = [
+  'MENB', 'HPV', 'PERTUSSIS', 'SHINGLES', 'PNEUMOCCOCAL',
+  'MENACWY', 'TDIPV', '3IN1', '4IN1', '6IN1',
+  'ROTAVIRUS', 'HIBMENC', 'HEPB', 'FLU', 'COVID',
+] as const;
+
+/**
+ * The set of valid campaign types. Per the guide, two are observed:
+ * V (vaccination) and S (screening). We use this for the campaign Type
+ * dropdown and for validation.
+ */
+export const KNOWN_CAMPAIGN_TYPES: readonly string[] = ['V', 'S'] as const;
+
 export const ATTRIBUTES: AttributeDef[] = [
   // ---- PERSON level ----
   {
@@ -88,27 +109,34 @@ export const ATTRIBUTES: AttributeDef[] = [
   },
 
   // ---- TARGET level (per vaccine / condition) ----
-  {
-    name: 'LAST_SUCCESSFUL_DATE',
-    level: 'TARGET',
-    type: 'date',
-    target: 'RSV',
-    description: 'Date the person last successfully received this vaccination.',
-  },
-  {
-    name: 'BOOKED_APPOINTMENT_DATE',
-    level: 'TARGET',
-    type: 'date',
-    target: 'RSV',
-    description: 'Date of any future vaccination appointment for this target.',
-  },
-  {
-    name: 'BOOKED_APPOINTMENT_PROVIDER',
-    level: 'TARGET',
-    type: 'code',
-    target: 'RSV',
-    description: 'Provider for the booked appointment (e.g. NBS, MYA).',
-  },
+  // For each known target, the same three attributes apply, per the
+  // vims.elid_target_conditions_attributes lineage: every target record
+  // has these three fields (LAST_SUCCESSFUL_DATE from NVR, the two
+  // BOOKED_* fields from vims.bookings). We generate the entries
+  // programmatically so adding a target is a one-line change.
+  ...KNOWN_TARGETS.flatMap(target => [
+    {
+      name: 'LAST_SUCCESSFUL_DATE',
+      level: 'TARGET' as const,
+      type: 'date' as const,
+      target,
+      description: `Date the person last successfully received the ${target} vaccination.`,
+    },
+    {
+      name: 'BOOKED_APPOINTMENT_DATE',
+      level: 'TARGET' as const,
+      type: 'date' as const,
+      target,
+      description: `Date of any future ${target} vaccination appointment.`,
+    },
+    {
+      name: 'BOOKED_APPOINTMENT_PROVIDER',
+      level: 'TARGET' as const,
+      type: 'code' as const,
+      target,
+      description: `Provider for the ${target} booked appointment (e.g. NBS, MYA).`,
+    },
+  ]),
 
   // ---- COHORT level ----
   {

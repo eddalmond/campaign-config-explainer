@@ -1,5 +1,5 @@
 import type { Iteration, Rule, Cohort, ActionMapping } from '../types/campaign';
-import { getAttribute, getOperator, KNOWN_ACTION_TYPES } from '../data/catalog';
+import { getAttribute, getOperator, KNOWN_ACTION_TYPES, KNOWN_TARGETS } from '../data/catalog';
 import { findTemplateTokens } from './templates';
 
 export type Severity = 'error' | 'warning' | 'info';
@@ -114,6 +114,17 @@ function validateRule(rule: Rule, index: number, ctx: RuleContext): ValidationIs
         ruleIndex: index,
       });
     } else {
+      // Target-level rule's AttributeTarget should be one of the known
+      // vaccines / conditions. Error if not — typo'd targets will
+      // silently fail to match any data at runtime.
+      if (rule.AttributeLevel === 'TARGET' && rule.AttributeTarget && !KNOWN_TARGETS.includes(rule.AttributeTarget)) {
+        issues.push({
+          severity: 'error',
+          code: 'UNKNOWN_TARGET',
+          message: `AttributeTarget "${rule.AttributeTarget}" is not a known target. Known targets: ${KNOWN_TARGETS.join(', ')}.`,
+          ruleIndex: index,
+        });
+      }
       // Operator valid for this attribute's value type?
       if (rule.Operator) {
         const op = getOperator(rule.Operator);
