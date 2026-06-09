@@ -68,7 +68,7 @@ export default function CampaignOverview({ config, currentIterationIndex, onIter
   };
 
   return (
-    <div className="card">
+    <div className="card" id="sec-campaign">
       <div className="section-heading-row">
         <h2 className="section-heading mt-0">Campaign Overview</h2>
         {viewMode === 'author' && (

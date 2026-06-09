@@ -98,11 +98,11 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
 
   return (
     <div className="card">
-      {/* Iteration Summary */}
-      <div className="mb-8">
+      {/* Section 1: Iteration Summary (editable) */}
+      <div className="mb-8" id="sec-iteration">
         <div className="section-heading-row">
           <h2 className="section-heading mt-0">
-            Iteration: {iteration.Name || iteration.ID}
+            <span className="section-num">1</span> Iteration: {iteration.Name || iteration.ID}
           </h2>
           {authorMode && (
             <button
@@ -184,16 +184,11 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
         </div>
       </div>
 
-      {/* Validation Panel — always visible */}
-      <div className="mb-8">
-        <ValidationPanel iteration={iteration} campaign={campaignContext} />
-      </div>
-
-      {/* Cohort Table */}
-      <div className="mb-8">
+      {/* Section 2: Cohort Table (editable) */}
+      <div className="mb-8" id="sec-cohorts">
         <div className="section-heading-row">
           <h2 className="section-heading">
-            Cohorts ({cohorts.length})
+            <span className="section-num">2</span> Cohorts ({cohorts.length})
           </h2>
           {authorMode && (
             <button
@@ -260,10 +255,25 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
         </div>
       </div>
 
-      {/* Phase 1: Eligibility Flow */}
-      <div className="mb-8">
-        <span className="badge badge--phase">Phase 1</span>
-        <h2 style={{fontSize: 'var(--font-size-xl)', fontWeight: 700, marginTop: '0.5rem', marginBottom: '1rem'}}>Eligibility Flow — "Who is eligible?"</h2>
+      {/* Section 4: Validation Panel (overall — runs against iteration + all rules) */}
+      <div className="mb-8" id="sec-validation">
+        <div className="section-heading-row">
+          <h2 className="section-heading mt-0">
+            <span className="section-num">4</span> Validation
+          </h2>
+        </div>
+        <ValidationPanel iteration={iteration} campaign={campaignContext} />
+      </div>
+
+      {/* Section 5: Diagrams (eligibility flow + action routing) */}
+      <div className="mb-8" id="sec-diagrams">
+        <div className="section-heading-row">
+          <h2 className="section-heading mt-0">
+            <span className="section-num">5</span> Eligibility &amp; Action Flow
+          </h2>
+        </div>
+
+        <h3 className="sub-heading" style={{ marginTop: '0.5rem' }}>Phase 1 — Eligibility Flow</h3>
         <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
           For each cohort (by priority), the system checks: base eligibility (cohort membership) →
           Filter rules (F) by priority group → Suppression rules (S) by priority group.
@@ -272,25 +282,30 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
         <div className="mermaid-container">
           <MermaidDiagram code={buildEligibilityDiagram(filterRules, suppressionRules, cohorts)} />
         </div>
-      </div>
 
-      {/* Phase 2: Action Routing */}
-      <div className="mb-8">
-        <span className="badge badge--phase">Phase 2</span>
-        <h2 style={{fontSize: 'var(--font-size-xl)', fontWeight: 700, marginTop: '0.5rem', marginBottom: '1rem'}}>Action Routing — "What happens next?"</h2>
+        <h3 className="sub-heading" style={{ marginTop: '1.5rem' }}>Phase 2 — Action Routing</h3>
         <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
           Based on the final status from Phase 1, the system selects which action rules to evaluate:
           <span className="badge badge--r" style={{marginLeft: '0.5rem', marginRight: '0.25rem'}}>R</span> if <strong>actionable</strong>
-          <span className="badge badge--x" style={{marginLeft: '0.5rem', marginRight: '0.25rem'}}>X</span> if <strong>not eligible</strong>
-          <span className="badge badge--y" style={{marginLeft: '0.5rem', marginRight: '0.25rem'}}>Y</span> if <strong>not actionable</strong>
+          <span className="badge badge--x" style={{marginLeft: '0.5rem', marginRight: '0.25rem'}}>X</span> if <strong>not_eligible</strong>
+          <span className="badge badge--y" style={{marginLeft: '0.5rem', marginRight: '0.25rem'}}>Y</span> if <strong>not_actionable</strong>
           <br />
           All rules in a priority group must match for that group's CommsRouting to be used. First matching group wins. Otherwise, default routing applies.
         </p>
         <div className="mermaid-container">
           <MermaidDiagram code={buildActionRoutingDiagram(redirectRules, xRules, yRules, iteration)} />
         </div>
+      </div>
 
-        <h3 className="sub-heading">Routing Resolution</h3>
+      {/* Section 6: Routing Resolution + Fallback Chain */}
+      <div className="mb-8" id="sec-routing">
+        <div className="section-heading-row">
+          <h2 className="section-heading mt-0">
+            <span className="section-num">6</span> Routing
+          </h2>
+        </div>
+
+        <h3 className="sub-heading" style={{ marginTop: '0.5rem' }}>Routing Resolution</h3>
         <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>How CommsRouting strings resolve to actions via the ActionsMapper.</p>
         {buildRoutingResolution(redirectRules, xRules, yRules, iteration, actionsMapper || {})}
 
@@ -309,10 +324,12 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
         />
       </div>
 
-      {/* Tabbed Rule Tables */}
-      <div>
+      {/* Section 3: Tabbed Rule Tables (editable) */}
+      <div className="mb-8" id="sec-rules">
         <div className="section-heading-row">
-          <h2 className="section-heading mt-0">Rule Details</h2>
+          <h2 className="section-heading mt-0">
+            <span className="section-num">3</span> Rule Details
+          </h2>
           {authorMode && (
             <>
               <button
