@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Cohort, YN } from '../types/campaign';
 import { Field, NumberInput, Select, TextInput, Textarea } from './FormControls';
 import Drawer from './Drawer';
+import { useConfirm } from '../hooks/useConfirm';
 
 interface Props {
   cohort: Cohort | null;     // null = creating
@@ -17,6 +18,17 @@ const VIRTUAL_OPTIONS: { value: YN; label: string }[] = [
 ];
 
 export default function CohortEditor({ cohort, onClose, onSave, onDelete, maxPriority }: Props) {
+  const confirm = useConfirm();
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    const ok = await confirm({
+      title: 'Delete cohort?',
+      message: 'Rules that reference this cohort will fail validation.',
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (ok) onDelete();
+  };
   const isNew = cohort === null;
   const [draft, setDraft] = useState<Cohort>(() => cohort
     ? structuredClone(cohort)
@@ -39,7 +51,7 @@ export default function CohortEditor({ cohort, onClose, onSave, onDelete, maxPri
       footer={
         <div className="drawer__footer-row">
           {!isNew && onDelete && (
-            <button type="button" className="btn btn--danger" onClick={() => { if (confirm('Delete this cohort? Rules that reference it will fail validation.')) onDelete(); }}>Delete</button>
+            <button type="button" className="btn btn--danger" onClick={handleDelete}>Delete</button>
           )}
           <div className="drawer__footer-spacer" />
           <button type="button" className="btn btn--secondary" onClick={onClose}>Cancel</button>

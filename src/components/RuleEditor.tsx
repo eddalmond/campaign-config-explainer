@@ -10,6 +10,7 @@ import {
 } from '../data/catalog';
 import { explainOperator, explainRule, type RuleGroupContext } from '../utils/explain';
 import { useRecentAttributes } from '../hooks/useRecentAttributes';
+import { useConfirm } from '../hooks/useConfirm';
 import { Field, NumberInput, Select, TextInput, MultiSelect, Checkbox } from './FormControls';
 import Drawer from './Drawer';
 import MarkdownTextarea from './MarkdownTextarea';
@@ -56,6 +57,23 @@ function makeBlankRule(type: RuleType, maxPriority: number): Rule {
 }
 
 export default function RuleEditor({ iteration, ruleIndex, onClose, onSave, onDelete }: Props) {
+  const confirm = useConfirm();
+  const handleDelete = async () => {
+    if (!onDelete || ruleIndex == null) return;
+    const rule = iteration.IterationRules?.[ruleIndex];
+    const label = rule?.Name || `rule #${ruleIndex + 1}`;
+    const ok = await confirm({
+      title: 'Delete rule?',
+      message: (
+        <>
+          Delete rule <strong>{label}</strong>? This cannot be undone.
+        </>
+      ),
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (ok) onDelete(ruleIndex);
+  };
   const isNew = ruleIndex === null;
   const original = isNew ? null : (iteration.IterationRules || [])[ruleIndex];
   const maxPriority = useMemo(
@@ -181,11 +199,7 @@ export default function RuleEditor({ iteration, ruleIndex, onClose, onSave, onDe
             <button
               type="button"
               className="btn btn--danger"
-              onClick={() => {
-                if (confirm('Delete this rule?')) {
-                  onDelete(ruleIndex!);
-                }
-              }}
+              onClick={handleDelete}
             >
               Delete
             </button>

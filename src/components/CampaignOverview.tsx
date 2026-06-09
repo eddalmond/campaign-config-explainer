@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { CampaignConfig } from '../types/campaign';
 import { useAuthor } from '../hooks/AuthorContext';
+import { useConfirm } from '../hooks/useConfirm';
 
 interface Props {
   config: CampaignConfig;
@@ -22,6 +23,7 @@ function descFreq(f: string | undefined): string {
 
 export default function CampaignOverview({ config, currentIterationIndex, onIterationSelect }: Props) {
   const { viewMode, duplicateIteration, deleteIteration } = useAuthor();
+  const confirm = useConfirm();
 
   // Map the displayed index (sorted by IterationDate) back to the iteration ID
   // so we can call duplicateIteration/deleteIteration by ID.
@@ -53,18 +55,32 @@ export default function CampaignOverview({ config, currentIterationIndex, onIter
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!currentIteration) return;
     if (isOnlyIteration) {
-      alert('Cannot delete the only remaining iteration. Duplicate it first if you want to start over.');
+      // The Delete button is also disabled in this case, so this is a
+      // belt-and-braces check that fires if anyone calls handleDelete
+      // programmatically. We just no-op; the disabled button + tooltip
+      // is the user-facing affordance.
       return;
     }
-    if (confirm(`Delete iteration "${currentIteration.Name || currentIteration.ID}"? This cannot be undone (but you can use Reset to recover the loaded version).`)) {
-      deleteIteration(currentIteration.ID);
-      // Snap the picker to a safe index after deletion.
-      const newCount = config.Iterations.length - 1;
-      if (currentIterationIndex >= newCount) onIterationSelect(Math.max(0, newCount - 1));
-    }
+    const ok = await confirm({
+      title: 'Delete iteration?',
+      message: (
+        <>
+          Delete iteration <strong>{currentIteration.Name || currentIteration.ID}</strong>?
+          This cannot be undone, but you can use <em>Reset</em> to recover
+          the loaded version.
+        </>
+      ),
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (!ok) return;
+    deleteIteration(currentIteration.ID);
+    // Snap the picker to a safe index after deletion.
+    const newCount = config.Iterations.length - 1;
+    if (currentIterationIndex >= newCount) onIterationSelect(Math.max(0, newCount - 1));
   };
 
   return (
@@ -149,7 +165,7 @@ export default function CampaignOverview({ config, currentIterationIndex, onIter
                 className="btn btn--danger-text"
                 onClick={handleDelete}
                 disabled={!currentIteration || isOnlyIteration}
-                title={isOnlyIteration ? 'Cannot delete the only remaining iteration' : 'Delete the selected iteration'}
+                title={isOnlyIteration ? 'Cannot delete the only remaining iteration — duplicate it first' : 'Delete the selected iteration'}
               >
                 Delete
               </button>

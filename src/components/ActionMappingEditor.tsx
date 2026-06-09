@@ -4,6 +4,7 @@ import { KNOWN_ACTION_TYPES } from '../data/catalog';
 import { Field, Select, TextInput } from './FormControls';
 import MarkdownTextarea from './MarkdownTextarea';
 import Drawer from './Drawer';
+import { useConfirm } from '../hooks/useConfirm';
 
 interface Props {
   /** Existing key — if null we're creating a new entry. */
@@ -21,6 +22,22 @@ const ACTION_TYPE_OPTIONS = Array.from(KNOWN_ACTION_TYPES).map(t => ({
 }));
 
 export default function ActionMappingEditor({ keyName, mapping, onClose, onSave, onDelete }: Props) {
+  const confirm = useConfirm();
+  const handleDelete = async () => {
+    if (!onDelete || !keyName) return;
+    const ok = await confirm({
+      title: 'Delete action?',
+      message: (
+        <>
+          Delete action <strong>{keyName}</strong>? Rules routing to it will
+          fail validation.
+        </>
+      ),
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (ok) onDelete(keyName);
+  };
   const isNew = keyName === null;
   const [draftKey, setDraftKey] = useState(keyName ?? '');
   const [draft, setDraft] = useState<ActionMapping>(() => mapping ? structuredClone(mapping) : {
@@ -57,7 +74,7 @@ export default function ActionMappingEditor({ keyName, mapping, onClose, onSave,
       footer={
         <div className="drawer__footer-row">
           {!isNew && onDelete && (
-            <button type="button" className="btn btn--danger" onClick={() => { if (confirm(`Delete action "${keyName}"? Rules routing to it will fail validation.`)) onDelete(keyName!); }}>Delete</button>
+            <button type="button" className="btn btn--danger" onClick={handleDelete}>Delete</button>
           )}
           <div className="drawer__footer-spacer" />
           <button type="button" className="btn btn--secondary" onClick={onClose}>Cancel</button>
