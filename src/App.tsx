@@ -6,6 +6,7 @@ import { AuthorContext } from './hooks/AuthorContext';
 import { SAMPLE_CONFIG, BLANK_CONFIG } from './data/sampleConfig';
 import CampaignOverview from './components/CampaignOverview';
 import IterationDetail from './components/IterationDetail';
+import StickySectionNav from './components/StickySectionNav';
 import ThemeToggle from './components/ThemeToggle';
 import AuthorControls from './components/AuthorControls';
 
@@ -149,6 +150,16 @@ function App() {
                 onIterationSelect={setCurrentIterationIndex}
               />
               {sortedIterations[currentIterationIndex] && (
+                <>
+                <StickySectionNav sections={[
+                  { id: 'sec-campaign', label: 'Campaign' },
+                  { id: 'sec-iteration', label: 'Iteration' },
+                  { id: 'sec-cohorts', label: 'Cohorts' },
+                  { id: 'sec-rules', label: 'Rules' },
+                  { id: 'sec-validation', label: 'Validation' },
+                  { id: 'sec-diagrams', label: 'Diagrams' },
+                  { id: 'sec-routing', label: 'Routing' },
+                ]} />
                 <IterationDetail
                   iteration={sortedIterations[currentIterationIndex]}
                   actionsMapper={sortedIterations[currentIterationIndex].ActionsMapper}
@@ -158,6 +169,7 @@ function App() {
                     DefaultCommsRouting: displayConfig.DefaultCommsRouting,
                   } : undefined}
                 />
+                </>
               )}
             </>
           )}
