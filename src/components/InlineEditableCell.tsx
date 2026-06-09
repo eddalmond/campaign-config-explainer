@@ -145,7 +145,7 @@ export default function InlineEditableCell<T>({
         }}
       >
         {renderDisplay ? renderDisplay(value) : <code>{String(value ?? '—')}</code>}
-        {error && <span className="inline-cell__error-dot" title={error} />}
+        {error && <span className="inline-cell__error-dot" role="img" aria-label={error} title={error} />}
       </button>
     );
   }
