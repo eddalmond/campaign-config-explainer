@@ -419,6 +419,22 @@ details > summary {
   background-color: var(--grey-5);
 }
 
+/* The "+ Add rule" affordance lives in the tabs nav so it's always
+   visible regardless of which tab is active. Visually de-emphasised
+   relative to the active tab so it doesn't compete for attention. */
+.tab-btn--add {
+  margin-left: auto;
+  background-color: transparent;
+  border: 1px dashed var(--grey-3);
+  color: var(--primary);
+  font-weight: 600;
+}
+.tab-btn--add:hover {
+  background-color: var(--grey-5);
+  border-color: var(--primary);
+  border-style: solid;
+}
+
 .tab-btn.active {
   background-color: var(--white);
   color: var(--primary);
@@ -2230,12 +2246,18 @@ body,
   max-width: 100%;
   display: inline-flex;
   align-items: center;
+  /* Ensure em-dash / single-character values are still easy to click.
+     1.6rem gives a comfortable ~25px hit area on a 16px base font. */
+  min-height: 1.6rem;
 }
 .inline-cell--read-only:hover {
   border-color: var(--grey-3);
   background-color: var(--grey-5);
 }
-.inline-cell--read-only:focus {
+/* :focus-visible (not :focus) so the ring only appears for keyboard
+   navigation, not on mouse click — which would be visual noise on
+   every cell the user touches. */
+.inline-cell--read-only:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 1px;
 }

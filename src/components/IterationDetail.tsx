@@ -119,8 +119,8 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
         {iterationSentences.length > 0 && (
           <div className="iteration-sentence">
             <div className="iteration-sentence__label">In plain English</div>
-            {iterationSentences.map((s, i) => (
-              <p key={i} className="iteration-sentence__line">{s}</p>
+            {iterationSentences.map((s) => (
+              <p key={s} className="iteration-sentence__line">{s}</p>
             ))}
           </div>
         )}
@@ -217,11 +217,16 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
               </tr>
             </thead>
             <tbody>
-              {cohorts.map((c, i) => {
+              {cohorts.map((c) => {
                 const originalIndex = (iteration.IterationCohorts || []).indexOf(c);
+                // Key on CohortLabel (the stable identifier) so that editing
+                // a cohort's label doesn't cause React to lose the row's state.
+                // Fall back to a stable per-row id derived from the original
+                // index for the (theoretical) case of two cohorts sharing a label.
+                const rowKey = c.CohortLabel ?? `unnamed-${originalIndex}`;
                 return (
                   <tr
-                    key={i}
+                    key={rowKey}
                     style={{cursor: authorMode ? 'pointer' : 'default'}}
                     onClick={authorMode && originalIndex >= 0 ? () => {
                       // AuthorPanel owns the cohort editor state — fire a custom event it listens to
@@ -362,6 +367,16 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
               {tab.label}
             </button>
           ))}
+          {authorMode && (
+            <button
+              type="button"
+              className="tab-btn tab-btn--add"
+              onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:open-new-rule'))}
+              title="Add a new rule to this iteration. The rule editor opens as a drawer; you can change the type (F/S/R/X/Y) inside it."
+            >
+              + Add rule
+            </button>
+          )}
         </div>
 
         <div className="tab-content">
