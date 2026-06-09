@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { RuleType } from '../types/campaign';
 import type { RuleFilterState } from '../utils/ruleFilter';
 export type { RuleFilterState } from '../utils/ruleFilter';
@@ -11,6 +12,12 @@ interface Props {
   totalCount: number;
   /** Rule count after the filter is applied. */
   filteredCount: number;
+  /** Optional content rendered at the end of the second row, after
+   *  the "Clear filters" button and count. Used by the rule tables
+   *  to mount the <BulkRuleActions /> trigger button inline with the
+   *  filter, so the user always sees the action is scoped to the
+   *  currently filtered set. */
+  extraActions?: ReactNode;
 }
 
 const DEFAULT_TYPES: RuleType[] = ['F', 'S', 'R', 'X', 'Y'];
@@ -25,7 +32,7 @@ const TYPE_LABEL: Record<RuleType, string> = {
  * the filter; the table re-renders with the filtered subset.
  */
 export default function RuleFilter({
-  state, onChange, availableTypes, totalCount, filteredCount,
+  state, onChange, availableTypes, totalCount, filteredCount, extraActions,
 }: Props) {
   const types = availableTypes ?? DEFAULT_TYPES;
   const toggleType = (t: RuleType) => {
@@ -91,6 +98,7 @@ export default function RuleFilter({
             Clear filters
           </button>
         )}
+        {extraActions}
         <span className="rule-filter__count">
           Showing {filteredCount} of {totalCount} rules
         </span>

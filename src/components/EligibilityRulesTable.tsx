@@ -4,6 +4,7 @@ import { explainOperator, lookupAttribute, lookupOperator } from '../utils/expla
 import { sortWithOriginalIndex } from '../utils/sortWithIndex';
 import InlineEditableCell from './InlineEditableCell';
 import RuleFilter from './RuleFilter';
+import BulkRuleActions, { type BulkPatch } from './BulkRuleActions';
 import { applyRuleFilter, type RuleFilterState } from '../utils/ruleFilter';
 
 interface Props {
@@ -18,11 +19,18 @@ interface Props {
    * still open the drawer via onEditRule.
    */
   onUpdateRule?: (originalIndex: number, patch: Partial<Rule>) => void;
+  /**
+   * Bulk-edit callback for the <BulkRuleActions /> toolbar. The parent
+   * (IterationDetail) implements this as a single updateIteration() call
+   * so the working copy is updated atomically and the rule-sentence /
+   * diagram re-renders once for the whole batch.
+   */
+  onBulkUpdate?: (patches: BulkPatch[]) => void;
 }
 
 const EMPTY_FILTER: RuleFilterState = { types: [] };
 
-export default function EligibilityRulesTable({ filterRules, suppressionRules, allRulesInOrder, onEditRule, onUpdateRule }: Props) {
+export default function EligibilityRulesTable({ filterRules, suppressionRules, allRulesInOrder, onEditRule, onUpdateRule, onBulkUpdate }: Props) {
   const original = allRulesInOrder ?? [...filterRules, ...suppressionRules];
   const allRules = [...filterRules, ...suppressionRules].sort((a, b) => a.Type.localeCompare(b.Type) || a.Priority - b.Priority);
   const [filter, setFilter] = useState<RuleFilterState>(EMPTY_FILTER);
@@ -41,9 +49,30 @@ export default function EligibilityRulesTable({ filterRules, suppressionRules, a
     return <p className="page-description">No eligibility rules defined.</p>;
   }
 
+  // For the bulk-actions toolbar: each filtered rule paired with its
+  // original index in iteration.IterationRules. Uses allRulesInOrder
+  // if provided (author mode), else falls back to the combined list.
+  const filteredWithIndex = filteredRules.map((rule) => ({
+    rule,
+    originalIndex: (allRulesInOrder ?? original).indexOf(rule),
+  })).filter(({ originalIndex }) => originalIndex >= 0);
+
   return (
     <div>
-      {onUpdateRule && <RuleFilter state={filter} onChange={setFilter} totalCount={allRules.length} filteredCount={filteredRules.length} />}
+      {onUpdateRule && (
+        <RuleFilter
+          state={filter}
+          onChange={setFilter}
+          totalCount={allRules.length}
+          filteredCount={filteredRules.length}
+          extraActions={onBulkUpdate ? (
+            <BulkRuleActions
+              filtered={filteredWithIndex}
+              onApply={onBulkUpdate}
+            />
+          ) : undefined}
+        />
+      )}
 
       <div className="table-container">
         <table className="data-table data-table--editable">

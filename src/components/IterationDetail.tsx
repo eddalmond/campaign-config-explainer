@@ -10,6 +10,7 @@ import TemplateChips from './TemplateChips';
 import AuthorPanel from './AuthorPanel';
 import FallbackChainDiagram from './FallbackChainDiagram';
 import CollapsibleSection from './CollapsibleSection';
+import { type BulkPatch } from './BulkRuleActions';
 import { explainIteration } from '../utils/explain';
 import { summarise, validateIteration } from '../utils/validation';
 
@@ -83,6 +84,31 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
       return { ...it, IterationRules: rules };
     });
     closeEditor();
+  };
+
+  // Single-rule update and bulk-rule update share the same patch
+  // semantics, so factor them out. The bulk version applies all
+  // patches in a single updateIteration() call so the working copy
+  // is updated atomically and the rule-sentence/diagram re-renders
+  // once for the whole batch (rather than once per rule).
+  const applyRulePatch = (originalIndex: number, patch: Partial<Rule>) => {
+    updateIteration(iteration.ID, (it) => {
+      const rules = [...(it.IterationRules || [])];
+      if (originalIndex < 0 || originalIndex >= rules.length) return it;
+      rules[originalIndex] = { ...rules[originalIndex], ...patch };
+      return { ...it, IterationRules: rules };
+    });
+  };
+  const applyBulkRulePatches = (patches: BulkPatch[]) => {
+    if (patches.length === 0) return;
+    updateIteration(iteration.ID, (it) => {
+      const rules = [...(it.IterationRules || [])];
+      for (const { originalIndex, patch } of patches) {
+        if (originalIndex < 0 || originalIndex >= rules.length) continue;
+        rules[originalIndex] = { ...rules[originalIndex], ...patch };
+      }
+      return { ...it, IterationRules: rules };
+    });
   };
 
   const tabs: { id: TabId; label: string }[] = [
@@ -362,13 +388,8 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
               suppressionRules={suppressionRules}
               allRulesInOrder={iteration.IterationRules}
               onEditRule={authorMode ? openEditRule : undefined}
-              onUpdateRule={authorMode ? (originalIndex, patch) => {
-                updateIteration(iteration.ID, (it) => {
-                  const rules = [...(it.IterationRules || [])];
-                  rules[originalIndex] = { ...rules[originalIndex], ...patch };
-                  return { ...it, IterationRules: rules };
-                });
-              } : undefined}
+              onUpdateRule={authorMode ? applyRulePatch : undefined}
+              onBulkUpdate={authorMode ? applyBulkRulePatches : undefined}
             />
           )}
           {activeTab === 'action' && (
@@ -378,13 +399,8 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
               yRules={yRules}
               allRulesInOrder={iteration.IterationRules}
               onEditRule={authorMode ? openEditRule : undefined}
-              onUpdateRule={authorMode ? (originalIndex, patch) => {
-                updateIteration(iteration.ID, (it) => {
-                  const rules = [...(it.IterationRules || [])];
-                  rules[originalIndex] = { ...rules[originalIndex], ...patch };
-                  return { ...it, IterationRules: rules };
-                });
-              } : undefined}
+              onUpdateRule={authorMode ? applyRulePatch : undefined}
+              onBulkUpdate={authorMode ? applyBulkRulePatches : undefined}
             />
           )}
           {activeTab === 'actions-mapper' && (
