@@ -3,6 +3,7 @@ import type { CampaignConfig } from './types/campaign';
 import { useTheme } from './hooks/useTheme';
 import { useAuthorState } from './hooks/useAuthorState';
 import { AuthorContext } from './hooks/AuthorContext';
+import { ConfirmDialog } from './hooks/useConfirm';
 import { SAMPLE_CONFIG, BLANK_CONFIG } from './data/sampleConfig';
 import CampaignOverview from './components/CampaignOverview';
 import IterationDetail from './components/IterationDetail';
@@ -174,6 +175,8 @@ function App() {
             </>
           )}
         </main>
+
+        <ConfirmDialog />
 
         <footer className="app-footer">
           Internal use only.

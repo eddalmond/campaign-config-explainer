@@ -2490,3 +2490,53 @@ body,
 [id^="sec-"] {
   scroll-margin-top: 4rem;
 }
+
+/* --- Confirm dialog (used by useConfirm hook) ---------------------
+   Centred modal that uses the same .drawer-backdrop--open for the dim
+   overlay as the side drawer. Keeps native window.confirm/alert out
+   of the app so theming (light/dark) and a11y semantics stay consistent.
+*/
+.confirm-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+  width: min(440px, calc(100vw - 2rem));
+  background-color: var(--white);
+  border: 1px solid var(--grey-3);
+  border-left: 4px solid var(--danger);
+  border-radius: 4px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  padding: 1.5rem;
+  animation: confirm-dialog-in 0.15s ease-out;
+}
+@keyframes confirm-dialog-in {
+  from { transform: translate(-50%, calc(-50% + 8px)); opacity: 0; }
+  to   { transform: translate(-50%, -50%); opacity: 1; }
+}
+.confirm-dialog__title {
+  margin: 0 0 0.5rem 0;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--black);
+}
+.confirm-dialog__message {
+  margin: 0 0 1.25rem 0;
+  color: var(--grey-1);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+}
+.confirm-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+[data-theme="dark"] .confirm-dialog {
+  background-color: #1f2933;
+  border-color: var(--grey-3);
+  border-left-color: var(--danger);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+[data-theme="dark"] .confirm-dialog__title { color: #e6edf3; }
+[data-theme="dark"] .confirm-dialog__message { color: #c4cdd5; }

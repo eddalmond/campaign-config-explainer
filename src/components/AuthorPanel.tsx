@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { CampaignConfig, Iteration, Rule, Cohort, ActionMapping } from '../types/campaign';
 import { useAuthor } from '../hooks/AuthorContext';
+import { useConfirm } from '../hooks/useConfirm';
 import RuleEditor from './RuleEditor';
 import CohortEditor from './CohortEditor';
 import ActionMappingEditor from './ActionMappingEditor';
@@ -45,6 +46,7 @@ export default function AuthorPanel({
   onDeleteRule,
 }: Props) {
   const { updateIteration, update, working, loaded, duplicateIteration, deleteIteration } = useAuthor();
+  const confirm = useConfirm();
   const [local, setLocal] = useState<LocalEditor | null>(null);
 
   // Bridge from the custom events fired by the read-only tables and section headers.
@@ -192,14 +194,27 @@ export default function AuthorPanel({
       window.dispatchEvent(new CustomEvent('campaign-explainer:select-iteration', { detail: { id: newId } }));
     }
   };
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (isOnlyIteration) {
-      alert('Cannot delete the only remaining iteration. Add a new one first if you want to start over.');
+      // Belt-and-braces — the Delete button is disabled in this case, so
+      // this only fires if the function is called programmatically. The
+      // disabled button + tooltip is the user-facing affordance.
       return;
     }
-    if (confirm(`Delete iteration "${iteration.Name || iteration.ID}"? This cannot be undone (but you can use Reset to recover the loaded version).`)) {
-      deleteIteration(iteration.ID);
-    }
+    const ok = await confirm({
+      title: 'Delete iteration?',
+      message: (
+        <>
+          Delete iteration <strong>{iteration.Name || iteration.ID}</strong>?
+          This cannot be undone, but you can use <em>Reset</em> to recover
+          the loaded version.
+        </>
+      ),
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (!ok) return;
+    deleteIteration(iteration.ID);
   };
 
   return (
