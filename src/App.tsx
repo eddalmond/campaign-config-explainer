@@ -3,7 +3,7 @@ import type { CampaignConfig } from './types/campaign';
 import { useTheme } from './hooks/useTheme';
 import { useAuthorState } from './hooks/useAuthorState';
 import { AuthorContext } from './hooks/AuthorContext';
-import { ConfirmDialog } from './hooks/useConfirm';
+import ConfirmDialog from './hooks/ConfirmDialog';
 import { SAMPLE_CONFIG, BLANK_CONFIG } from './data/sampleConfig';
 import CampaignOverview from './components/CampaignOverview';
 import IterationDetail from './components/IterationDetail';

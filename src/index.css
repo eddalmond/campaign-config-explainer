@@ -1393,6 +1393,12 @@ body,
   font-size: var(--font-size-sm);
   padding: 0.2rem 0.6rem;
 }
+.section-heading-row__actions {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
 
 /* JSON preview */
 .json-preview {
@@ -2540,3 +2546,87 @@ body,
 }
 [data-theme="dark"] .confirm-dialog__title { color: #e6edf3; }
 [data-theme="dark"] .confirm-dialog__message { color: #c4cdd5; }
+
+/* --- Collapsible section --------------------------------------------
+   Wraps each major iteration section (Iteration, Cohorts, Rules,
+   Validation, Diagrams, Routing) as its own .card with an inline
+   collapse toggle. The toggle is placed next to the heading so the
+   intent is obvious; the body uses the native [hidden] attribute
+   so it stays mounted (preserves React state) but is invisible.
+*/
+.collapsible-section {
+  /* Inherits .card styles: border, padding, box-shadow. */
+}
+.collapsible-section__body {
+  margin-top: 0.5rem;
+}
+.collapsible-section--collapsed {
+  /* Slight visual hint that this section is collapsed and there is
+     more content below — a lighter shadow than the expanded cards. */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.collapsible-section__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-left: 0.5rem;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: var(--grey-1);
+  cursor: pointer;
+  vertical-align: middle;
+  transition: background-color 0.1s, border-color 0.1s, color 0.1s;
+}
+.collapsible-section__toggle:hover {
+  background-color: var(--grey-5);
+  border-color: var(--grey-3);
+  color: var(--black);
+}
+.collapsible-section__toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+[data-theme="dark"] .collapsible-section__toggle {
+  color: var(--grey-2);
+}
+[data-theme="dark"] .collapsible-section__toggle:hover {
+  background-color: var(--grey-4);
+  border-color: var(--grey-3);
+  color: #e6edf3;
+}
+
+/* Validation summary hero card — sits at the top in author mode when
+   the validation panel has any issues. Surfaces counts above the fold
+   so users can see the most-urgent signal without scrolling. */
+.validation-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--grey-5);
+  border: 1px solid var(--grey-3);
+  border-left: 4px solid var(--primary);
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+}
+.validation-summary--has-errors {
+  border-left-color: var(--danger);
+  background-color: rgba(218, 41, 28, 0.06);
+}
+.validation-summary--has-warnings {
+  border-left-color: var(--warning);
+  background-color: rgba(232, 119, 34, 0.06);
+}
+.validation-summary__counts {
+  display: inline-flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.validation-summary__action {
+  margin-left: auto;
+}
