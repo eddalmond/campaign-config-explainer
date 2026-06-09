@@ -3,6 +3,7 @@ import type { Rule, RuleType } from '../types/campaign';
 import { explainOperator, lookupAttribute, lookupOperator } from '../utils/explain';
 import InlineEditableCell from './InlineEditableCell';
 import RuleFilter from './RuleFilter';
+import BulkRuleActions, { type BulkPatch } from './BulkRuleActions';
 import { applyRuleFilter, type RuleFilterState } from '../utils/ruleFilter';
 
 interface Props {
@@ -18,12 +19,17 @@ interface Props {
    * drawer via onEditRule.
    */
   onUpdateRule?: (originalIndex: number, patch: Partial<Rule>) => void;
+  /**
+   * Bulk-edit callback for the <BulkRuleActions /> toolbar. See the
+   * equivalent prop in EligibilityRulesTable for the rationale.
+   */
+  onBulkUpdate?: (patches: BulkPatch[]) => void;
 }
 
 const ROUTING_TYPES: RuleType[] = ['R', 'X', 'Y'];
 const EMPTY_FILTER: RuleFilterState = { types: [] };
 
-export default function ActionRulesTable({ rRules, xRules, yRules, allRulesInOrder, onEditRule, onUpdateRule }: Props) {
+export default function ActionRulesTable({ rRules, xRules, yRules, allRulesInOrder, onEditRule, onUpdateRule, onBulkUpdate }: Props) {
   const allRules = [...rRules, ...xRules, ...yRules].sort((a, b) => {
     const order: Record<string, number> = { R: 0, X: 1, Y: 2 };
     return (order[a.Type] ?? 9) - (order[b.Type] ?? 9) || a.Priority - b.Priority;
@@ -35,6 +41,13 @@ export default function ActionRulesTable({ rRules, xRules, yRules, allRulesInOrd
     return <p className="page-description">No action routing rules defined.</p>;
   }
 
+  // For the bulk-actions toolbar: each filtered rule paired with its
+  // original index in iteration.IterationRules.
+  const filteredWithIndex = filteredRules.map((rule) => ({
+    rule,
+    originalIndex: allRulesInOrder ? allRulesInOrder.indexOf(rule) : -1,
+  })).filter(({ originalIndex }) => originalIndex >= 0);
+
   return (
     <div>
       <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
@@ -43,7 +56,22 @@ export default function ActionRulesTable({ rRules, xRules, yRules, allRulesInOrd
         <span className="badge badge--y" style={{marginLeft: '0.75rem', marginRight: '0.25rem'}}>Y</span> fires when status = <strong>not_actionable</strong>
       </p>
 
-      {onUpdateRule && <RuleFilter state={filter} onChange={setFilter} availableTypes={ROUTING_TYPES} totalCount={allRules.length} filteredCount={filteredRules.length} />}
+      {onUpdateRule && (
+        <RuleFilter
+          state={filter}
+          onChange={setFilter}
+          availableTypes={ROUTING_TYPES}
+          totalCount={allRules.length}
+          filteredCount={filteredRules.length}
+          extraActions={onBulkUpdate ? (
+            <BulkRuleActions
+              filtered={filteredWithIndex}
+              hasCommsRouting
+              onApply={onBulkUpdate}
+            />
+          ) : undefined}
+        />
+      )}
 
       <div className="table-container">
         <table className="data-table data-table--editable">
