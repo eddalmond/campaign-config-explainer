@@ -5,6 +5,7 @@ import {
   getAttribute,
   getOperator,
   operatorsForType,
+  KNOWN_TARGETS,
   type AttributeDef,
 } from '../data/catalog';
 import { explainOperator, explainRule, type RuleGroupContext } from '../utils/explain';
@@ -35,7 +36,7 @@ const ATTRIBUTE_LEVELS: { value: AttributeLevel; label: string }[] = [
   { value: 'COHORT', label: 'COHORT' },
 ];
 
-const TARGET_OPTIONS = ['RSV']; // Extend as more vaccines get added
+const TARGET_OPTIONS = KNOWN_TARGETS as readonly string[];
 
 function makeBlankRule(type: RuleType, maxPriority: number): Rule {
   return {
