@@ -9,7 +9,9 @@ import ValidationPanel from './ValidationPanel';
 import TemplateChips from './TemplateChips';
 import AuthorPanel from './AuthorPanel';
 import FallbackChainDiagram from './FallbackChainDiagram';
+import CollapsibleSection from './CollapsibleSection';
 import { explainIteration } from '../utils/explain';
+import { summarise, validateIteration } from '../utils/validation';
 
 interface Props {
   iteration: Iteration;
@@ -96,26 +98,70 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
   // Plain-English summary of the whole iteration
   const iterationSentences = useMemo(() => explainIteration(iteration), [iteration]);
 
-  return (
-    <div className="card">
-      {/* Section 1: Iteration Summary (editable) */}
-      <div className="mb-8" id="sec-iteration">
-        <div className="section-heading-row">
-          <h2 className="section-heading mt-0">
-            <span className="section-num">1</span> Iteration: {iteration.Name || iteration.ID}
-          </h2>
-          {authorMode && (
-            <button
-              type="button"
-              className="btn btn--secondary btn--small section-heading-row__edit"
-              onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:edit-section', { detail: { section: 'iteration' } }))}
-              title="Edit iteration settings (Name, Date, Type, defaults, StatusText)"
-            >
-              Edit iteration settings
-            </button>
-          )}
-        </div>
+  // Validation counts — used both by the full ValidationPanel and by
+  // the author-mode summary card at the top of the page. Computed
+  // once and shared so the counts stay in lockstep with the panel.
+  const validationSummary = useMemo(() => {
+    const issues = validateIteration(iteration, campaignContext);
+    return summarise(issues);
+  }, [iteration, campaignContext]);
+  const hasValidationIssues = validationSummary.errors > 0
+    || validationSummary.warnings > 0
+    || validationSummary.infos > 0;
 
+  return (
+    <div>
+      {/* Author-mode validation summary: a hero card at the top that
+          surfaces the most-urgent signal (errors > warnings > infos)
+          without forcing the user to scroll to section 4. The full
+          ValidationPanel still lives in its own card below. */}
+      {authorMode && hasValidationIssues && (
+        <div
+          className={`validation-summary ${validationSummary.errors > 0 ? 'validation-summary--has-errors' : validationSummary.warnings > 0 ? 'validation-summary--has-warnings' : ''}`}
+          role="status"
+          aria-live="polite"
+        >
+          <strong>Validation</strong>
+          <div className="validation-summary__counts">
+            {validationSummary.errors > 0 && (
+              <span className="badge badge--error">
+                {validationSummary.errors} {validationSummary.errors === 1 ? 'error' : 'errors'}
+              </span>
+            )}
+            {validationSummary.warnings > 0 && (
+              <span className="badge badge--warning">
+                {validationSummary.warnings} {validationSummary.warnings === 1 ? 'warning' : 'warnings'}
+              </span>
+            )}
+            {validationSummary.infos > 0 && (
+              <span className="badge badge--info">
+                {validationSummary.infos} {validationSummary.infos === 1 ? 'info' : 'info'}
+              </span>
+            )}
+          </div>
+          <a href="#sec-validation" className="btn btn--secondary btn--small validation-summary__action">
+            Jump to validation
+          </a>
+        </div>
+      )}
+
+      {/* Section 1: Iteration Summary */}
+      <CollapsibleSection
+        id="sec-iteration"
+        number={1}
+        title={<>Iteration: {iteration.Name || iteration.ID}</>}
+        alwaysExpanded
+        actions={authorMode ? (
+          <button
+            type="button"
+            className="btn btn--secondary btn--small"
+            onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:edit-section', { detail: { section: 'iteration' } }))}
+            title="Edit iteration settings (Name, Date, Type, defaults, StatusText)"
+          >
+            Edit iteration settings
+          </button>
+        ) : undefined}
+      >
         {iterationSentences.length > 0 && (
           <div className="iteration-sentence">
             <div className="iteration-sentence__label">In plain English</div>
@@ -182,25 +228,25 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
             <div className="data-item__value font-mono">{iteration.DefaultNotActionableRouting || '—'}</div>
           </div>
         </div>
-      </div>
+      </CollapsibleSection>
 
-      {/* Section 2: Cohort Table (editable) */}
-      <div className="mb-8" id="sec-cohorts">
-        <div className="section-heading-row">
-          <h2 className="section-heading">
-            <span className="section-num">2</span> Cohorts ({cohorts.length})
-          </h2>
-          {authorMode && (
-            <button
-              type="button"
-              className="btn btn--secondary btn--small section-heading-row__edit"
-              onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:edit-section', { detail: { section: 'cohorts' } }))}
-              title="Manage cohorts — add, edit, or jump to the cohort editor"
-            >
-              Manage cohorts
-            </button>
-          )}
-        </div>
+      {/* Section 2: Cohorts */}
+      <CollapsibleSection
+        id="sec-cohorts"
+        number={2}
+        title={<>Cohorts ({cohorts.length})</>}
+        alwaysExpanded
+        actions={authorMode ? (
+          <button
+            type="button"
+            className="btn btn--secondary btn--small"
+            onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:edit-section', { detail: { section: 'cohorts' } }))}
+            title="Manage cohorts — add, edit, or jump to the cohort editor"
+          >
+            Manage cohorts
+          </button>
+        ) : undefined}
+      >
         <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
           Evaluated in priority order. Person must be a member of a cohort to proceed to rule evaluation for that cohort.
         </p>
@@ -258,105 +304,35 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
             </tbody>
           </table>
         </div>
-      </div>
+      </CollapsibleSection>
 
-      {/* Section 4: Validation Panel (overall — runs against iteration + all rules) */}
-      <div className="mb-8" id="sec-validation">
-        <div className="section-heading-row">
-          <h2 className="section-heading mt-0">
-            <span className="section-num">4</span> Validation
-          </h2>
-        </div>
-        <ValidationPanel iteration={iteration} campaign={campaignContext} />
-      </div>
-
-      {/* Section 5: Diagrams (eligibility flow + action routing) */}
-      <div className="mb-8" id="sec-diagrams">
-        <div className="section-heading-row">
-          <h2 className="section-heading mt-0">
-            <span className="section-num">5</span> Eligibility &amp; Action Flow
-          </h2>
-        </div>
-
-        <h3 className="sub-heading" style={{ marginTop: '0.5rem' }}>Phase 1 — Eligibility Flow</h3>
-        <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
-          For each cohort (by priority), the system checks: base eligibility (cohort membership) →
-          Filter rules (F) by priority group → Suppression rules (S) by priority group.
-          The best status across all cohorts becomes the final status.
-        </p>
-        <div className="mermaid-container">
-          <MermaidDiagram code={buildEligibilityDiagram(filterRules, suppressionRules, cohorts)} />
-        </div>
-
-        <h3 className="sub-heading" style={{ marginTop: '1.5rem' }}>Phase 2 — Action Routing</h3>
-        <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
-          Based on the final status from Phase 1, the system selects which action rules to evaluate:
-          <span className="badge badge--r" style={{marginLeft: '0.5rem', marginRight: '0.25rem'}}>R</span> if <strong>actionable</strong>
-          <span className="badge badge--x" style={{marginLeft: '0.5rem', marginRight: '0.25rem'}}>X</span> if <strong>not_eligible</strong>
-          <span className="badge badge--y" style={{marginLeft: '0.5rem', marginRight: '0.25rem'}}>Y</span> if <strong>not_actionable</strong>
-          <br />
-          All rules in a priority group must match for that group's CommsRouting to be used. First matching group wins. Otherwise, default routing applies.
-        </p>
-        <div className="mermaid-container">
-          <MermaidDiagram code={buildActionRoutingDiagram(redirectRules, xRules, yRules, iteration)} />
-        </div>
-      </div>
-
-      {/* Section 6: Routing Resolution + Fallback Chain */}
-      <div className="mb-8" id="sec-routing">
-        <div className="section-heading-row">
-          <h2 className="section-heading mt-0">
-            <span className="section-num">6</span> Routing
-          </h2>
-        </div>
-
-        <h3 className="sub-heading" style={{ marginTop: '0.5rem' }}>Routing Resolution</h3>
-        <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>How CommsRouting strings resolve to actions via the ActionsMapper.</p>
-        {buildRoutingResolution(redirectRules, xRules, yRules, iteration, actionsMapper || {})}
-
-        <h3 className="sub-heading" style={{ marginTop: '1.5rem' }}>Fallback Chain</h3>
-        <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
-          The full R / X / Y chain, read top-to-bottom: <em>first match wins</em>. Each link shows
-          the priority group + rule names + CommsRouting code, with the resolved ActionType /
-          description from the ActionsMapper. When no rule matches, the iteration default fires.
-          When that's empty, the campaign default (R only) fires. When that's empty too, no
-          action is returned.
-        </p>
-        <FallbackChainDiagram
-          iteration={iteration}
-          campaignDefault={campaignContext?.DefaultCommsRouting}
-          actionsMapper={actionsMapper}
-        />
-      </div>
-
-      {/* Section 3: Tabbed Rule Tables (editable) */}
-      <div className="mb-8" id="sec-rules">
-        <div className="section-heading-row">
-          <h2 className="section-heading mt-0">
-            <span className="section-num">3</span> Rule Details
-          </h2>
-          {authorMode && (
-            <>
-              <button
-                type="button"
-                className="btn btn--secondary btn--small section-heading-row__edit"
-                onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:edit-section', { detail: { section: 'rules' } }))}
-                title="Open the rule manager — add new rules, see a summary by type"
-              >
-                Manage rules
-              </button>
-              <button
-                type="button"
-                className="btn btn--secondary btn--small section-heading-row__edit"
-                onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:edit-section', { detail: { section: 'actions' } }))}
-                title="Manage the ActionsMapper — add, edit, or audit your action definitions"
-              >
-                Manage actions
-              </button>
-            </>
-          )}
-        </div>
-
+      {/* Section 3: Rule Details (tabbed) */}
+      <CollapsibleSection
+        id="sec-rules"
+        number={3}
+        title="Rule Details"
+        alwaysExpanded
+        actions={authorMode ? (
+          <>
+            <button
+              type="button"
+              className="btn btn--secondary btn--small"
+              onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:edit-section', { detail: { section: 'rules' } }))}
+              title="Open the rule manager — add new rules, see a summary by type"
+            >
+              Manage rules
+            </button>
+            <button
+              type="button"
+              className="btn btn--secondary btn--small"
+              onClick={() => window.dispatchEvent(new CustomEvent('campaign-explainer:edit-section', { detail: { section: 'actions' } }))}
+              title="Manage the ActionsMapper — add, edit, or audit your action definitions"
+            >
+              Manage actions
+            </button>
+          </>
+        ) : undefined}
+      >
         <div className="tabs-nav">
           {tabs.map(tab => (
             <button
@@ -447,7 +423,76 @@ export default function IterationDetail({ iteration, actionsMapper, campaignCont
             </div>
           )}
         </div>
-      </div>
+      </CollapsibleSection>
+
+      {/* Section 4: Validation */}
+      <CollapsibleSection
+        id="sec-validation"
+        number={4}
+        title="Validation"
+        alwaysExpanded
+      >
+        <ValidationPanel iteration={iteration} campaign={campaignContext} />
+      </CollapsibleSection>
+
+      {/* Section 5: Diagrams — collapsed by default in author mode since
+          it's reference material. In view mode (the visualisation flow),
+          the diagrams are the point, so leave them expanded. */}
+      <CollapsibleSection
+        id="sec-diagrams"
+        number={5}
+        title="Eligibility & Action Flow"
+        defaultCollapsed={authorMode}
+      >
+        <h3 className="sub-heading" style={{ marginTop: '0.5rem' }}>Phase 1 — Eligibility Flow</h3>
+        <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
+          For each cohort (by priority), the system checks: base eligibility (cohort membership) →
+          Filter rules (F) by priority group → Suppression rules (S) by priority group.
+          The best status across all cohorts becomes the final status.
+        </p>
+        <div className="mermaid-container">
+          <MermaidDiagram code={buildEligibilityDiagram(filterRules, suppressionRules, cohorts)} />
+        </div>
+
+        <h3 className="sub-heading" style={{ marginTop: '1.5rem' }}>Phase 2 — Action Routing</h3>
+        <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
+          Based on the final status from Phase 1, the system selects which action rules to evaluate:
+          <span className="badge badge--r" style={{marginLeft: '0.5rem', marginRight: '0.25rem'}}>R</span> if <strong>actionable</strong>
+          <span className="badge badge--x" style={{marginLeft: '0.5rem', marginRight: '0.25rem'}}>X</span> if <strong>not_eligible</strong>
+          <span className="badge badge--y" style={{marginLeft: '0.5rem', marginRight: '0.25rem'}}>Y</span> if <strong>not_actionable</strong>
+          <br />
+          All rules in a priority group must match for that group's CommsRouting to be used. First matching group wins. Otherwise, default routing applies.
+        </p>
+        <div className="mermaid-container">
+          <MermaidDiagram code={buildActionRoutingDiagram(redirectRules, xRules, yRules, iteration)} />
+        </div>
+      </CollapsibleSection>
+
+      {/* Section 6: Routing — collapsed by default in author mode. */}
+      <CollapsibleSection
+        id="sec-routing"
+        number={6}
+        title="Routing"
+        defaultCollapsed={authorMode}
+      >
+        <h3 className="sub-heading" style={{ marginTop: '0.5rem' }}>Routing Resolution</h3>
+        <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>How CommsRouting strings resolve to actions via the ActionsMapper.</p>
+        {buildRoutingResolution(redirectRules, xRules, yRules, iteration, actionsMapper || {})}
+
+        <h3 className="sub-heading" style={{ marginTop: '1.5rem' }}>Fallback Chain</h3>
+        <p style={{fontSize: 'var(--font-size-sm)', color: 'var(--grey-1)', marginBottom: '1rem'}}>
+          The full R / X / Y chain, read top-to-bottom: <em>first match wins</em>. Each link shows
+          the priority group + rule names + CommsRouting code, with the resolved ActionType /
+          description from the ActionsMapper. When no rule matches, the iteration default fires.
+          When that's empty, the campaign default (R only) fires. When that's empty too, no
+          action is returned.
+        </p>
+        <FallbackChainDiagram
+          iteration={iteration}
+          campaignDefault={campaignContext?.DefaultCommsRouting}
+          actionsMapper={actionsMapper}
+        />
+      </CollapsibleSection>
 
       {/* Author panel — only renders in author mode. Manages its own editor drawer state
           (rule/cohort/action/metadata), and also bridges to custom events fired by the
